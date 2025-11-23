@@ -1047,7 +1047,7 @@ GameObject:
   - component: {fileID: 2758460576008450521}
   - component: {fileID: 370336809717677629}
   m_Layer: 0
-  m_Name: IDKAT Palette
+  m_Name: Stage1 Palette
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
