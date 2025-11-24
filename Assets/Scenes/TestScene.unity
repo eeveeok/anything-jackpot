@@ -399,9 +399,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5567554072073979545, guid: 4895aaabb8eba31478564cfe65131bfe, type: 3}
+      propertyPath: laserSpawnDistance
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 5567554072073979546, guid: 4895aaabb8eba31478564cfe65131bfe, type: 3}
       propertyPath: m_Name
       value: LaserShooter
+      objectReference: {fileID: 0}
+    - target: {fileID: 5567554072073979547, guid: 4895aaabb8eba31478564cfe65131bfe, type: 3}
+      propertyPath: m_SpriteSortPoint
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4895aaabb8eba31478564cfe65131bfe, type: 3}

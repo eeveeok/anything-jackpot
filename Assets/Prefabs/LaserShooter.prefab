@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 5567554072073979543}
   - component: {fileID: 5567554072073979542}
   - component: {fileID: 5567554072073979545}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: LaserShooter
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -169,13 +169,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1fdfa607a46425409d5192ba25ec7bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 4
-  jumpForce: 9
+  moveSpeed: 5
+  jumpForce: 10
   laserBeamPrefab: {fileID: 7113028204864663587, guid: dde3dd42a59334243a96d7280dd3b14d, type: 3}
-  laserCooldown: 0.05
-  laserSpawnDistance: 0.7
-  recoilForce: 5
-  maxRecoilVelocity: 8
+  laserSpawnDistance: 1
+  initialRecoilForce: 15
+  continuousRecoilForce: 1000
+  maxRecoilVelocity: 1000
+  verticalRecoilMultiplier: 0.5
+  recoilSmoothing: 0.1
   groundCheck: {fileID: 5567554073421109413}
   groundCheckRadius: 0.2
   whatIsGround:
@@ -190,9 +192,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5567554073421109413}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: GroundCheck
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

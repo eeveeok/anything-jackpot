@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7113028204864663589}
   - component: {fileID: 7113028204864663586}
+  - component: {fileID: 7079181414200821202}
   - component: {fileID: 7113028204864663590}
   - component: {fileID: 7113028204864663591}
   - component: {fileID: 7113028204864663588}
@@ -27,9 +28,9 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7113028204864663587}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.7, y: 0.15, z: 0}
-  m_LocalScale: {x: 1, y: 0.5, z: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -75,18 +76,39 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_SortingOrder: 3
+  m_Sprite: {fileID: 21300000, guid: b6a6b8faeff59f549a6de89eaef8da3e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_DrawMode: 1
+  m_Size: {x: 2.52, y: 0.8}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &7079181414200821202
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7113028204864663587}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 76188071d814fe1439e63b7ced24b800, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!50 &7113028204864663590
 Rigidbody2D:
   serializedVersion: 4
@@ -125,14 +147,14 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
+    oldSize: {x: 2.52, y: 0.8}
+    newSize: {x: 2.52, y: 0.8}
     adaptiveTilingThreshold: 0.5
-    drawMode: 0
+    drawMode: 1
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2.5, y: 0.8}
   m_EdgeRadius: 0
 --- !u!114 &7113028204864663588
 MonoBehaviour:
@@ -146,9 +168,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33f8476db77ad584284c4a1d96002dc3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  direction: {x: 1, y: 0}
   damage: 10
+  damageInterval: 0.2
   spawnDistance: 0.5
-  hitEffect: {fileID: 0}
+  hitEffect: {fileID: 4907434466365904711, guid: 56827491734cc2b4ab67a458a55b7b4c, type: 3}
+  fireEffect:
+  - {fileID: 0}
+  - {fileID: 0}
+  maxEffects: 15
+  effectLifetime: 0.3
+  effectsPerSpawn: 3
+  effectSpawnRadius: 1.5
+  effectSpawnInterval: 0
+  effectSpawnChance: 1
+  effectSizeRange: {x: 0.8, y: 1.2}
+  randomRotation: 1
+  minLaserLength: 0.1
+  maxLaserLength: 20
   characterCenter: {fileID: 0}
   mainCamera: {fileID: 0}
+  direction: {x: 1, y: 0}

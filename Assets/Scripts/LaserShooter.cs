@@ -1,28 +1,29 @@
 using UnityEngine;
-using System.Collections;
 
 public class LaserShooter : MonoBehaviour
 {
     [Header("이동 설정")]
-    public float moveSpeed = 4f;
-    public float jumpForce = 8f;
+    public float moveSpeed = 5f;
+    public float jumpForce = 10f;
 
     [Header("레이저 설정")]
     public GameObject laserBeamPrefab;
-    public float laserCooldown = 0.05f;
-    public float laserSpawnDistance = 0.7f; // 캐릭터 중심에서 레이저 시작 거리
+    public float laserSpawnDistance = 0.7f;
 
-    [Header("반동 설정")]
-    public float recoilForce = 5f;
-    public float maxRecoilVelocity = 8f;
+    [Header("반동 세부 설정")]
+    public float initialRecoilForce = 12f;
+    public float continuousRecoilForce = 1000f;
+    public float maxRecoilVelocity = 2000f;
+
+    [Header("반동 세부 설정")]
+    public float verticalRecoilMultiplier = 0.5f;
+    public float recoilSmoothing = 0.1f;
 
     private Rigidbody2D rb;
-    private Animator animator;
     private float horizontalInput;
     private bool isGrounded;
     private bool isFacingRight = true;
     private bool isLaserActive = false;
-    private float lastLaserTime = 0f;
     private GameObject currentLaser;
     private Camera mainCamera;
 
@@ -31,11 +32,18 @@ public class LaserShooter : MonoBehaviour
     public float groundCheckRadius = 0.2f;
     public LayerMask whatIsGround;
 
+    // 애니메이션
+    private Animator animator;
+    private readonly int isLaserHash = Animator.StringToHash("IsLaser");
+
+    // 반동 관련
+    private Vector2 recoilVelocity;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
         mainCamera = Camera.main;
+        animator = GetComponent<Animator>();
 
         if (rb == null)
         {
@@ -43,6 +51,7 @@ public class LaserShooter : MonoBehaviour
         }
         rb.gravityScale = 3f;
         rb.freezeRotation = true;
+        rb.drag = 0.3f;
     }
 
     void Update()
@@ -50,12 +59,18 @@ public class LaserShooter : MonoBehaviour
         HandleInput();
         CheckGround();
         UpdateFacingDirection();
+        UpdateAnimation();
     }
 
     void FixedUpdate()
     {
         Move();
-        HandleLaser();
+
+        // 레이저가 활성화되어 있으면 계속 반동 적용
+        if (isLaserActive)
+        {
+            ApplyContinuousRecoil();
+        }
     }
 
     void HandleInput()
@@ -65,29 +80,30 @@ public class LaserShooter : MonoBehaviour
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-
-            animator.SetBool("Jump",true);
         }
 
-        if (Input.GetKeyDown(KeyCode.X) || Input.GetMouseButtonDown(0))
+        // 레이저 발사/중지 입력
+        if ((Input.GetKeyDown(KeyCode.X) || Input.GetMouseButtonDown(0)) && !isLaserActive)
         {
             StartLaser();
 
-            animator.SetBool("Shoot", true);
+            animator.SetBool("Fire", true);
         }
-        if (Input.GetKeyUp(KeyCode.X) || Input.GetMouseButtonUp(0))
+        if ((Input.GetKeyUp(KeyCode.X) || Input.GetMouseButtonUp(0)) && isLaserActive)
         {
             StopLaser();
 
-            animator.SetBool("Shoot", false);
+            animator.SetBool("Fire", false);
         }
     }
 
     void Move()
     {
-        rb.velocity = new Vector2(horizontalInput * moveSpeed, rb.velocity.y);
+        float currentMoveSpeed = isLaserActive ? moveSpeed * 0.6f : moveSpeed;
+        Vector2 newVelocity = new Vector2(horizontalInput * currentMoveSpeed, rb.velocity.y);
+        rb.velocity = newVelocity;
 
-        animator.SetFloat("Speed", rb.velocity.magnitude);
+        animator.SetFloat("Speed", newVelocity.magnitude);
     }
 
     void CheckGround()
@@ -120,45 +136,20 @@ public class LaserShooter : MonoBehaviour
         transform.localScale = scale;
     }
 
+    void UpdateAnimation()
+    {
+        if (animator != null)
+        {
+            animator.SetBool(isLaserHash, isLaserActive);
+        }
+    }
+
     void StartLaser()
-    {
-        if (Time.time >= lastLaserTime + laserCooldown)
-        {
-            isLaserActive = true;
-            CreateLaserBeam();
-        }
-    }
-
-    void StopLaser()
-    {
-        isLaserActive = false;
-        if (currentLaser != null)
-        {
-            Destroy(currentLaser);
-            currentLaser = null;
-        }
-    }
-
-    void HandleLaser()
-    {
-        if (isLaserActive && Time.time >= lastLaserTime + laserCooldown)
-        {
-            if (currentLaser != null)
-            {
-                Destroy(currentLaser);
-            }
-
-            CreateLaserBeam();
-            ApplyRecoil();
-
-            lastLaserTime = Time.time;
-        }
-    }
-
-    void CreateLaserBeam()
     {
         if (laserBeamPrefab != null)
         {
+            isLaserActive = true;
+
             // 마우스 위치를 기반으로 방향 계산
             Vector3 mousePosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             Vector2 direction = new Vector2(
@@ -176,29 +167,87 @@ public class LaserShooter : MonoBehaviour
             if (laserScript != null)
             {
                 laserScript.direction = direction;
-                laserScript.characterCenter = transform; // 캐릭터 중심 전달
+                laserScript.characterCenter = transform;
                 laserScript.mainCamera = mainCamera;
                 laserScript.spawnDistance = laserSpawnDistance;
             }
+
+            // 초기 반동 적용
+            ApplyInitialRecoil(direction);
         }
     }
 
-    void ApplyRecoil()
+    void StopLaser()
     {
-        Vector3 mousePosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 direction = new Vector2(
-            mousePosition.x - transform.position.x,
-            mousePosition.y - transform.position.y
-        ).normalized;
+        isLaserActive = false;
 
-        Vector2 recoilDirection = -direction;
-        recoilDirection.y *= 0.7f;
+        if (currentLaser != null)
+        {
+            LaserBeam laserScript = currentLaser.GetComponent<LaserBeam>();
+            if (laserScript != null)
+            {
+                laserScript.SetActive(false);
+            }
 
-        rb.velocity += recoilDirection * recoilForce;
+            Destroy(currentLaser, 0.1f);
+            currentLaser = null;
+        }
+    }
 
+    void ApplyInitialRecoil(Vector2 laserDirection)
+    {
+        // 초기 반동은 레이저 발사 방향의 반대
+        Vector2 recoilDirection = -laserDirection.normalized;
+        Vector2 recoil = recoilDirection * initialRecoilForce;
+        recoil.y *= verticalRecoilMultiplier;
+
+        rb.AddForce(recoil, ForceMode2D.Impulse);
+
+        // 최대 속도 제한
         if (rb.velocity.magnitude > maxRecoilVelocity)
         {
             rb.velocity = rb.velocity.normalized * maxRecoilVelocity;
         }
     }
+
+    void ApplyContinuousRecoil()
+    {
+        // 실시간 마우스 위치로 반동 방향 계산
+        Vector3 mousePosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 currentDirection = new Vector2(
+            mousePosition.x - transform.position.x,
+            mousePosition.y - transform.position.y
+        ).normalized;
+
+        // 반동 방향은 현재 레이저 방향의 반대
+        Vector2 recoilDirection = -currentDirection.normalized;
+
+        // 지속적인 반동 적용
+        Vector2 targetRecoil = recoilDirection * continuousRecoilForce;
+        targetRecoil.y *= verticalRecoilMultiplier * 0.3f;
+
+        // 부드러운 반동 적용
+        Vector2 smoothRecoil = Vector2.SmoothDamp(
+            Vector2.zero,
+            targetRecoil,
+            ref recoilVelocity,
+            recoilSmoothing
+        );
+
+        rb.AddForce(smoothRecoil, ForceMode2D.Force);
+
+        // 최대 속도 제한
+        if (rb.velocity.magnitude > maxRecoilVelocity)
+        {
+            rb.velocity = rb.velocity.normalized * maxRecoilVelocity;
+        }
+
+        // 디버그: 반동 힘 시각화
+        Debug.DrawRay(transform.position, recoilDirection * 3f, Color.cyan);
+        Debug.DrawRay(transform.position, currentDirection * 2f, Color.yellow); // 현재 레이저 방향
+    }
+
+    // 공개 프로퍼티
+    public bool IsGrounded => isGrounded;
+    public bool IsLaserActive => isLaserActive;
 }
