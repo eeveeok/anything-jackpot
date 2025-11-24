@@ -9,6 +9,7 @@ public class LaserBeam : MonoBehaviour
     public float damage = 10f;
     public float damageInterval = 0.2f;
     public float spawnDistance = 0.7f;
+    public LayerMask layerMask;
 
     [Header("이펙트 설정")]
     public GameObject hitEffect;
@@ -33,7 +34,7 @@ public class LaserBeam : MonoBehaviour
 
     [Header("스프라이트 설정")]
     public float minLaserLength = 0.1f;
-    public float maxLaserLength = 20f;
+    public float maxLaserLength = 200f;
 
     [HideInInspector]
     public Transform characterCenter;
@@ -50,7 +51,6 @@ public class LaserBeam : MonoBehaviour
     // 데미지 관련
     private HashSet<GameObject> damagedObjects = new HashSet<GameObject>();
     private bool isActive = true;
-    private float originalSpriteWidth;
 
     // 이펙트 풀링 시스템
     private Queue<GameObject> effectPool;
@@ -67,16 +67,6 @@ public class LaserBeam : MonoBehaviour
         animator = GetComponent<Animator>();
 
         fireEffect = new GameObject[2];
-
-        // 원본 스프라이트 너비 저장
-        if (spriteRenderer != null && spriteRenderer.sprite != null)
-        {
-            originalSpriteWidth = spriteRenderer.sprite.bounds.size.x;
-        }
-        else
-        {
-            originalSpriteWidth = 1f;
-        }
 
         // 이펙트 시스템 초기화
         InitializeEffectSystem();
@@ -188,8 +178,6 @@ public class LaserBeam : MonoBehaviour
     RaycastHit2D PerformLaserCast(Vector2 origin, Vector2 dir, float maxDistance)
     {
         // 레이어 마스크 설정
-        int layerMask = LayerMask.GetMask("Ground");
-
         RaycastHit2D hit = Physics2D.Raycast(origin, dir, maxDistance, layerMask);
 
         // 디버그 시각화
@@ -236,13 +224,13 @@ public class LaserBeam : MonoBehaviour
             RaycastHit2D hit = hits[i];
             GameObject hitObject = hit.collider.gameObject;
 
-            // 플레이어自身은 제외
+            // 플레이어는 제외
             if (hitObject.CompareTag("Player")) continue;
 
             // 이미 이번 데미지 주기에서 처리한 객체는 건너뛰기
             if (damagedObjects.Contains(hitObject)) continue;
 
-            // 데미지 처리 (원래 로직)
+            // 데미지 처리
             // ...
 
             damagedObjects.Add(hitObject);

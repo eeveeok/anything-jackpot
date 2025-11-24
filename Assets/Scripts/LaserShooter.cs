@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class LaserShooter : MonoBehaviour
 {
@@ -134,6 +135,8 @@ public class LaserShooter : MonoBehaviour
         Vector3 scale = transform.localScale;
         scale.x *= -1;
         transform.localScale = scale;
+
+        transform.localPosition = new Vector2(transform.localPosition.x, transform.localPosition.y);
     }
 
     void UpdateAnimation()
