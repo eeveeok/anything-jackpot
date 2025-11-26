@@ -12,10 +12,14 @@ public class DialogueManager : MonoBehaviour
     [Header("Typing Settings")]
     public float typingSpeed = 0.04f;
 
-    [Header("Dialogue Data (3 NPCs)")]
+    [Header("Dialogue Data (7 NPCs)")]
     public DialogueData npc1Dialogue;
     public DialogueData npc2Dialogue;
     public DialogueData npc3Dialogue;
+    public DialogueData npc4Dialogue;
+    public DialogueData npc5Dialogue;
+    public DialogueData npc6Dialogue;
+    public DialogueData npc7Dialogue;
 
     private DialogueData currentDialogue;
     private int currentIndex = 0;
@@ -41,6 +45,18 @@ public class DialogueManager : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.Alpha3))
                 StartDialogue(npc3Dialogue);
+
+            if (Input.GetKeyDown(KeyCode.Alpha4))
+                StartDialogue(npc4Dialogue);
+
+            if (Input.GetKeyDown(KeyCode.Alpha5))
+                StartDialogue(npc5Dialogue);
+
+            if (Input.GetKeyDown(KeyCode.Alpha6))
+                StartDialogue(npc6Dialogue);
+
+            if (Input.GetKeyDown(KeyCode.Alpha7))
+                StartDialogue(npc7Dialogue);
         }
 
         // 대화 진행 중 스페이스바로 넘기기
