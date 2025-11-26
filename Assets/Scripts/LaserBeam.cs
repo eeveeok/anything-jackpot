@@ -1,7 +1,8 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class LaserBeam : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class LaserBeam : MonoBehaviour
 
     [Header("이펙트 설정")]
     public GameObject hitEffect;
-    public GameObject[] fireEffect; 
+    public GameObject[] fireEffect;
     public int maxEffects = 20;
     public float effectLifetime = 0.3f;
 
@@ -60,6 +61,8 @@ public class LaserBeam : MonoBehaviour
 
     // 레이저 충돌 정보
     private RaycastHit2D[] hits = new RaycastHit2D[10];
+
+    Dictionary<Vector3Int, int> tileHealth = new Dictionary<Vector3Int, int>();
 
     void Start()
     {
@@ -217,27 +220,57 @@ public class LaserBeam : MonoBehaviour
 
         // 레이저 경로 상의 모든 충돌체 검출
         float maxDistance = Vector2.Distance(actualLaserStartPoint, hitPoint);
-        int hitCount = Physics2D.RaycastNonAlloc(actualLaserStartPoint, direction, hits, maxDistance);
+        int hitCount = Physics2D.RaycastNonAlloc(actualLaserStartPoint, direction, hits, maxDistance, layerMask);
 
         for (int i = 0; i < hitCount; i++)
         {
             RaycastHit2D hit = hits[i];
             GameObject hitObject = hit.collider.gameObject;
 
-            // 플레이어는 제외
-            if (hitObject.CompareTag("Player")) continue;
-
             // 이미 이번 데미지 주기에서 처리한 객체는 건너뛰기
             if (damagedObjects.Contains(hitObject)) continue;
+            if (!hitObject.CompareTag("Breakable")) continue;
+
+            // --- 타일맵인지 체크 ---
+            Tilemap tilemap = hitObject.GetComponent<Tilemap>();
+            if (tilemap != null)
+            {
+                Vector3 hitPos = hit.point - hit.normal * 0.01f; // 경계면 보정
+                Vector3Int cell = tilemap.WorldToCell(hitPos);
+
+                TileBase tile = tilemap.GetTile(cell);
+
+                if (tile != null)
+                {
+                    // 타일 데미지 처리
+                    DamageTile(tilemap, cell);
+                }
+
+                continue;
+            }
 
             // 데미지 처리
-            // ...
+            //hitObject.GetComponent<Damageable>()?.takeDamage(damage);
 
             damagedObjects.Add(hitObject);
         }
 
         // 다음 데미지 주기를 위해 초기화
         damagedObjects.Clear();
+    }
+
+    void DamageTile(Tilemap tilemap, Vector3Int cell)
+    {
+        if (!tileHealth.ContainsKey(cell))
+            tileHealth[cell] = 2; // 초기 HP 지정
+
+        tileHealth[cell]--;
+
+        if (tileHealth[cell] <= 0)
+        {
+            tilemap.SetTile(cell, null);
+            tileHealth.Remove(cell);
+        }
     }
 
     void SpawnEffectsAlongLaser()

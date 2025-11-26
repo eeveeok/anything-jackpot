@@ -20,6 +20,7 @@ public class LaserShooter : MonoBehaviour
     public float verticalRecoilMultiplier = 0.5f;
     public float recoilSmoothing = 0.1f;
 
+    public PhysicsMaterial2D airMaterial;
     private Rigidbody2D rb;
     private float horizontalInput;
     private bool isGrounded;
@@ -50,9 +51,12 @@ public class LaserShooter : MonoBehaviour
         {
             rb = gameObject.AddComponent<Rigidbody2D>();
         }
-        rb.gravityScale = 3f;
-        rb.freezeRotation = true;
-        rb.drag = 0.3f;
+
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null && airMaterial != null)
+        {
+            col.sharedMaterial = airMaterial;
+        }
     }
 
     void Update()
@@ -80,6 +84,7 @@ public class LaserShooter : MonoBehaviour
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
+            rb.sharedMaterial = airMaterial;
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
 
@@ -109,10 +114,11 @@ public class LaserShooter : MonoBehaviour
 
     void CheckGround()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius, whatIsGround);
-        isGrounded = colliders.Length > 0;
+        isGrounded = Physics2D.Raycast(groundCheck.position, Vector2.down, 0.1f, whatIsGround);
 
         animator.SetBool("Jump", !isGrounded);
+
+        if (isGrounded) rb.sharedMaterial = null;
     }
 
     void UpdateFacingDirection()

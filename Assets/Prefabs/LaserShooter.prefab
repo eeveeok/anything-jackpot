@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 5567554072073979547}
   - component: {fileID: 5567554072073979540}
   - component: {fileID: 5567554072073979543}
-  - component: {fileID: 5567554072073979542}
   - component: {fileID: 5567554072073979545}
+  - component: {fileID: 577912982}
   m_Layer: 7
   m_Name: LaserShooter
   m_TagString: Player
@@ -123,40 +123,14 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_LinearDrag: 0.3
+  m_AngularDrag: 0
+  m_GravityScale: 3
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!61 &5567554072073979542
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5567554072073979546}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: -0.26198706, y: -0.18769222}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.2, y: 1.2}
-    newSize: {x: 0.48, y: 0.48}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 0.52961546, y: 0.831282}
-  m_EdgeRadius: 0
 --- !u!114 &5567554072073979545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -172,17 +146,34 @@ MonoBehaviour:
   moveSpeed: 5
   jumpForce: 10
   laserBeamPrefab: {fileID: 7113028204864663587, guid: dde3dd42a59334243a96d7280dd3b14d, type: 3}
-  laserSpawnDistance: 1
+  laserSpawnDistance: 0.1
   initialRecoilForce: 15
   continuousRecoilForce: 1000
   maxRecoilVelocity: 1000
   verticalRecoilMultiplier: 0.5
   recoilSmoothing: 0.1
+  airMaterial: {fileID: 6200000, guid: eb69a5c0c6f92f349be5f5bb8b06c274, type: 2}
   groundCheck: {fileID: 5567554073421109413}
-  groundCheckRadius: 0.2
+  groundCheckRadius: 0.5
   whatIsGround:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 320
+--- !u!70 &577912982
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5567554072073979546}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -0.23, y: -0.09}
+  m_Size: {x: 0.7, y: 1.02}
+  m_Direction: 0
 --- !u!1 &5567554073421109412
 GameObject:
   m_ObjectHideFlags: 0
@@ -207,7 +198,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5567554073421109412}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.25, y: -0.5, z: 0}
+  m_LocalPosition: {x: -0.25, y: -0.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
