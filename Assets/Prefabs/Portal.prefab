@@ -75,8 +75,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetPosition: {x: 7, y: -2, z: 0}
   fadeDuration: 3
+  suctionSpeed: 5
+  rotateSpeed: 360
   playerMovementScript: {fileID: 5567554072073979545, guid: 4895aaabb8eba31478564cfe65131bfe, type: 3}
   fadeCanvas: {fileID: 0}
+  portalCenter: {fileID: 5495767373269673597}
 --- !u!95 &5317216078562705252
 Animator:
   serializedVersion: 5
