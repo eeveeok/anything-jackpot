@@ -645,6 +645,7 @@ MonoBehaviour:
   dialoguePanel: {fileID: 1356769629}
   dialogueText: {fileID: 1405439216}
   nextIndicator: {fileID: 421163375}
+  portraitImage: {fileID: 1757657368}
   typingSpeed: 0.04
   npc1Dialogue: {fileID: 11400000, guid: f6b83f377fce71a4fa444d0011df5421, type: 2}
   npc2Dialogue: {fileID: 11400000, guid: 7678cb25d18767d479dd454b78b31f37, type: 2}

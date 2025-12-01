@@ -8,6 +8,7 @@ public class DialogueManager : MonoBehaviour
     public GameObject dialoguePanel;
     public Text dialogueText;
     public GameObject nextIndicator;
+    public GameObject portraitImage;
 
     [Header("Typing Settings")]
     public float typingSpeed = 0.04f;
@@ -30,6 +31,7 @@ public class DialogueManager : MonoBehaviour
     {
         dialoguePanel.SetActive(false);
         nextIndicator.SetActive(false);
+        portraitImage.SetActive(false);   // 처음에 초상화 OFF
     }
 
     void Update()
@@ -65,7 +67,7 @@ public class DialogueManager : MonoBehaviour
             if (isTyping)
             {
                 StopAllCoroutines();
-                dialogueText.text = currentDialogue.lines[currentIndex];
+                dialogueText.text = currentDialogue.lines[currentIndex].text;
                 isTyping = false;
                 nextIndicator.SetActive(true);
             }
@@ -90,8 +92,16 @@ public class DialogueManager : MonoBehaviour
 
     void ShowLine()
     {
+        DialogueLine line = currentDialogue.lines[currentIndex];
+
+        // 주인공일 때만 초상화 ON
+        if (line.speaker == "player")
+            portraitImage.SetActive(true);
+        else
+            portraitImage.SetActive(false);
+
         dialogueText.text = "";
-        StartCoroutine(TypeText(currentDialogue.lines[currentIndex]));
+        StartCoroutine(TypeText(line.text));
     }
 
     IEnumerator TypeText(string line)
@@ -128,5 +138,6 @@ public class DialogueManager : MonoBehaviour
         isDialogueActive = false;
         dialoguePanel.SetActive(false);
         dialogueText.text = "";
+        portraitImage.SetActive(false);
     }
 }
