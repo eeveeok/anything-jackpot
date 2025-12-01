@@ -171,6 +171,9 @@ MonoBehaviour:
   damage: 10
   damageInterval: 0.2
   spawnDistance: 0.5
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 338
   hitEffect: {fileID: 4907434466365904711, guid: 56827491734cc2b4ab67a458a55b7b4c, type: 3}
   fireEffect:
   - {fileID: 0}
@@ -184,7 +187,7 @@ MonoBehaviour:
   effectSizeRange: {x: 0.8, y: 1.2}
   randomRotation: 1
   minLaserLength: 0.1
-  maxLaserLength: 20
+  maxLaserLength: 200
   characterCenter: {fileID: 0}
   mainCamera: {fileID: 0}
   direction: {x: 1, y: 0}

@@ -1,7 +1,8 @@
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class LaserBeam : MonoBehaviour
 {
@@ -9,10 +10,11 @@ public class LaserBeam : MonoBehaviour
     public float damage = 10f;
     public float damageInterval = 0.2f;
     public float spawnDistance = 0.7f;
+    public LayerMask layerMask;
 
     [Header("이펙트 설정")]
     public GameObject hitEffect;
-    public GameObject[] fireEffect; 
+    public GameObject[] fireEffect;
     public int maxEffects = 20;
     public float effectLifetime = 0.3f;
 
@@ -33,7 +35,7 @@ public class LaserBeam : MonoBehaviour
 
     [Header("스프라이트 설정")]
     public float minLaserLength = 0.1f;
-    public float maxLaserLength = 20f;
+    public float maxLaserLength = 200f;
 
     [HideInInspector]
     public Transform characterCenter;
@@ -50,7 +52,6 @@ public class LaserBeam : MonoBehaviour
     // 데미지 관련
     private HashSet<GameObject> damagedObjects = new HashSet<GameObject>();
     private bool isActive = true;
-    private float originalSpriteWidth;
 
     // 이펙트 풀링 시스템
     private Queue<GameObject> effectPool;
@@ -61,22 +62,14 @@ public class LaserBeam : MonoBehaviour
     // 레이저 충돌 정보
     private RaycastHit2D[] hits = new RaycastHit2D[10];
 
+    Dictionary<Vector3Int, int> tileHealth = new Dictionary<Vector3Int, int>();
+
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
 
         fireEffect = new GameObject[2];
-
-        // 원본 스프라이트 너비 저장
-        if (spriteRenderer != null && spriteRenderer.sprite != null)
-        {
-            originalSpriteWidth = spriteRenderer.sprite.bounds.size.x;
-        }
-        else
-        {
-            originalSpriteWidth = 1f;
-        }
 
         // 이펙트 시스템 초기화
         InitializeEffectSystem();
@@ -188,8 +181,6 @@ public class LaserBeam : MonoBehaviour
     RaycastHit2D PerformLaserCast(Vector2 origin, Vector2 dir, float maxDistance)
     {
         // 레이어 마스크 설정
-        int layerMask = LayerMask.GetMask("Ground");
-
         RaycastHit2D hit = Physics2D.Raycast(origin, dir, maxDistance, layerMask);
 
         // 디버그 시각화
@@ -229,27 +220,57 @@ public class LaserBeam : MonoBehaviour
 
         // 레이저 경로 상의 모든 충돌체 검출
         float maxDistance = Vector2.Distance(actualLaserStartPoint, hitPoint);
-        int hitCount = Physics2D.RaycastNonAlloc(actualLaserStartPoint, direction, hits, maxDistance);
+        int hitCount = Physics2D.RaycastNonAlloc(actualLaserStartPoint, direction, hits, maxDistance, layerMask);
 
         for (int i = 0; i < hitCount; i++)
         {
             RaycastHit2D hit = hits[i];
             GameObject hitObject = hit.collider.gameObject;
 
-            // 플레이어自身은 제외
-            if (hitObject.CompareTag("Player")) continue;
-
             // 이미 이번 데미지 주기에서 처리한 객체는 건너뛰기
             if (damagedObjects.Contains(hitObject)) continue;
+            if (!hitObject.CompareTag("Breakable")) continue;
 
-            // 데미지 처리 (원래 로직)
-            // ...
+            // --- 타일맵인지 체크 ---
+            Tilemap tilemap = hitObject.GetComponent<Tilemap>();
+            if (tilemap != null)
+            {
+                Vector3 hitPos = hit.point - hit.normal * 0.01f; // 경계면 보정
+                Vector3Int cell = tilemap.WorldToCell(hitPos);
+
+                TileBase tile = tilemap.GetTile(cell);
+
+                if (tile != null)
+                {
+                    // 타일 데미지 처리
+                    DamageTile(tilemap, cell);
+                }
+
+                continue;
+            }
+
+            // 데미지 처리
+            //hitObject.GetComponent<Damageable>()?.takeDamage(damage);
 
             damagedObjects.Add(hitObject);
         }
 
         // 다음 데미지 주기를 위해 초기화
         damagedObjects.Clear();
+    }
+
+    void DamageTile(Tilemap tilemap, Vector3Int cell)
+    {
+        if (!tileHealth.ContainsKey(cell))
+            tileHealth[cell] = 2; // 초기 HP 지정
+
+        tileHealth[cell]--;
+
+        if (tileHealth[cell] <= 0)
+        {
+            tilemap.SetTile(cell, null);
+            tileHealth.Remove(cell);
+        }
     }
 
     void SpawnEffectsAlongLaser()
