@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pullRight: 1
-  horizontalPullForce: 200
+  horizontalPullForce: 500
   maxHorizontalSpeed: 50
   verticalPullForce: 15
   verticalDamping: 4
