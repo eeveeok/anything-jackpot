@@ -6710,8 +6710,6 @@ GameObject:
   - component: {fileID: 2036675124}
   - component: {fileID: 2036675123}
   - component: {fileID: 2036675127}
-  - component: {fileID: 2036675126}
-  - component: {fileID: 2036675125}
   m_Layer: 8
   m_Name: Breakable
   m_TagString: Breakable
@@ -7951,63 +7949,6 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!66 &2036675125
-CompositeCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2036675121}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_GeometryType: 0
-  m_GenerationType: 0
-  m_EdgeRadius: 0
-  m_ColliderPaths:
-  - m_Collider: {fileID: 2036675127}
-    m_ColliderPaths:
-    - - X: 140000000
-        Y: -20000000
-      - X: 140000000
-        Y: 90000000
-      - X: 40000000
-        Y: 90000000
-      - X: 40000000
-        Y: -20000000
-  m_CompositePaths:
-    m_Paths:
-    - - {x: 13.999971, y: -2}
-      - {x: 13.999971, y: 9}
-      - {x: 4, y: 8.99997}
-      - {x: 4.000029, y: -2}
-  m_VertexDistance: 0.0005
-  m_OffsetDistance: 0.00005
---- !u!50 &2036675126
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2036675121}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 7
 --- !u!19719996 &2036675127
 TilemapCollider2D:
   m_ObjectHideFlags: 0
@@ -8020,7 +7961,7 @@ TilemapCollider2D:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 1
+  m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
