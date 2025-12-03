@@ -1,5 +1,5 @@
+using System.Collections;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class LaserShooter : MonoBehaviour
 {
@@ -20,6 +20,11 @@ public class LaserShooter : MonoBehaviour
     public float verticalRecoilMultiplier = 0.5f;
     public float recoilSmoothing = 0.1f;
 
+    [Header("체크포인트")]
+    public Transform checkpoint;   // 인스펙터에서 연결
+    public float respawnDelay = 2.0f;
+    public bool isDead = false;
+
     public PhysicsMaterial2D airMaterial;
     private Rigidbody2D rb;
     private float horizontalInput;
@@ -33,6 +38,7 @@ public class LaserShooter : MonoBehaviour
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
     public LayerMask whatIsGround;
+    private Vector3 lastGroundedPosition; // 마지막으로 땅에 닿은 위치 (체크포인트 위함)
 
     // 애니메이션
     private Animator animator;
@@ -80,6 +86,8 @@ public class LaserShooter : MonoBehaviour
 
     void HandleInput()
     {
+        if (isDead) return;
+
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
         if (Input.GetButtonDown("Jump") && isGrounded)
@@ -118,7 +126,11 @@ public class LaserShooter : MonoBehaviour
 
         animator.SetBool("Jump", !isGrounded);
 
-        if (isGrounded) rb.sharedMaterial = null;
+        if (isGrounded)
+        {
+            rb.sharedMaterial = null;
+            lastGroundedPosition = transform.position;  // 마지막 착지 위치 기록
+        }
     }
 
     void UpdateFacingDirection()
@@ -254,6 +266,71 @@ public class LaserShooter : MonoBehaviour
         // 디버그: 반동 힘 시각화
         Debug.DrawRay(transform.position, recoilDirection * 3f, Color.cyan);
         Debug.DrawRay(transform.position, currentDirection * 2f, Color.yellow); // 현재 레이저 방향
+    }
+
+    // --------------------------------------------------
+    // 죽음 & 부활 처리
+    // --------------------------------------------------
+    public void PlayerDie()
+    {
+        if (isDead) return;
+        isDead = true;
+
+        // 이동, 레이저 중지
+        rb.velocity = Vector2.zero;
+        StopLaser();
+
+        // 보이지 않게
+        SetPlayerVisible(false);
+
+        // 2초 후 부활
+        StartCoroutine(RespawnDelay());
+    }
+
+    private IEnumerator RespawnDelay()
+    {
+        yield return new WaitForSeconds(2f);
+        Respawn();
+    }
+
+    private void Respawn()
+    {
+        // 체크포인트 존재하면 체크포인트, 없으면 마지막 착지 위치
+        Vector3 respawnPos = checkpoint != null ? checkpoint.position : lastGroundedPosition;
+        transform.position = respawnPos;
+
+        // 다시 보이게
+        SetPlayerVisible(true);
+
+        // 상태 초기화
+        isDead = false;
+    }
+
+    private void SetPlayerVisible(bool visible)
+    {
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+            sr.enabled = visible;
+
+        //Collider2D col = GetComponent<Collider2D>();
+        //if (col != null)
+        //    col.enabled = visible;
+
+        if (animator != null)
+            animator.enabled = visible;
+    }
+
+    // --------------------------------------------------
+    // 충돌 처리 (에너지 웨이브, 보스 공격 등)
+    // --------------------------------------------------
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (isDead) return;
+
+        if (collision.CompareTag("BossAttack"))
+        {
+            PlayerDie();
+        }
     }
 
     // 공개 프로퍼티

@@ -152,12 +152,14 @@ MonoBehaviour:
   maxRecoilVelocity: 1000
   verticalRecoilMultiplier: 0.5
   recoilSmoothing: 0.1
+  checkpoint: {fileID: 0}
+  respawnDelay: 2
   airMaterial: {fileID: 6200000, guid: eb69a5c0c6f92f349be5f5bb8b06c274, type: 2}
   groundCheck: {fileID: 5567554073421109413}
   groundCheckRadius: 0.5
   whatIsGround:
     serializedVersion: 2
-    m_Bits: 320
+    m_Bits: 832
 --- !u!70 &577912982
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

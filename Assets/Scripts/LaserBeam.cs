@@ -249,8 +249,12 @@ public class LaserBeam : MonoBehaviour
                 continue;
             }
 
-            // 데미지 처리
-            //hitObject.GetComponent<Damageable>()?.takeDamage(damage);
+            // 여기서 데미지 처리
+            Stage3Boss boss = hitObject.GetComponent<Stage3Boss>();
+            if (boss != null)
+            {
+                boss.ApplyDamage(damage);
+            }
 
             damagedObjects.Add(hitObject);
         }

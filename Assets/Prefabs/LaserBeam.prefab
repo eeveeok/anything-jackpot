@@ -173,7 +173,7 @@ MonoBehaviour:
   spawnDistance: 0.5
   layerMask:
     serializedVersion: 2
-    m_Bits: 338
+    m_Bits: 850
   hitEffect: {fileID: 4907434466365904711, guid: 56827491734cc2b4ab67a458a55b7b4c, type: 3}
   fireEffect:
   - {fileID: 0}
