@@ -7735,10 +7735,10 @@ Tilemap:
   - m_RefCount: 0
     m_Data: {fileID: 0}
   - m_RefCount: 110
-    m_Data: {fileID: 11400000, guid: a50b1cecb19f0fc43a4a2fe6dcd65e20, type: 2}
+    m_Data: {fileID: 11400000, guid: e3547759fbfd1124eac37b33176b907a, type: 2}
   m_TileSpriteArray:
   - m_RefCount: 110
-    m_Data: {fileID: 21300000, guid: 2854d141c8c1c3e48b42bb228e84f9e4, type: 3}
+    m_Data: {fileID: 21300000, guid: 3606dfbbc2a6131469cfd5f498dfe3dd, type: 3}
   - m_RefCount: 0
     m_Data: {fileID: 0}
   m_TileMatrixArray:
@@ -7789,23 +7789,7 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!19719996 &2036675125
-TilemapCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2036675121}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_MaximumTileChangeCount: 1000
-  m_ExtrusionFactor: 0
---- !u!66 &2036675126
+--- !u!66 &2036675125
 CompositeCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -7822,12 +7806,26 @@ CompositeCollider2D:
   m_GeometryType: 0
   m_GenerationType: 0
   m_EdgeRadius: 0
-  m_ColliderPaths: []
+  m_ColliderPaths:
+  - m_Collider: {fileID: 2036675127}
+    m_ColliderPaths:
+    - - X: 140000000
+        Y: -20000000
+      - X: 140000000
+        Y: 90000000
+      - X: 40000000
+        Y: 90000000
+      - X: 40000000
+        Y: -20000000
   m_CompositePaths:
-    m_Paths: []
+    m_Paths:
+    - - {x: 13.999971, y: -2}
+      - {x: 13.999971, y: 9}
+      - {x: 4, y: 8.99997}
+      - {x: 4.000029, y: -2}
   m_VertexDistance: 0.0005
   m_OffsetDistance: 0.00005
---- !u!50 &2036675127
+--- !u!50 &2036675126
 Rigidbody2D:
   serializedVersion: 4
   m_ObjectHideFlags: 0
@@ -7847,4 +7845,20 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 7
+--- !u!19719996 &2036675127
+TilemapCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2036675121}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 1
+  m_Offset: {x: 0, y: 0}
+  m_MaximumTileChangeCount: 1000
+  m_ExtrusionFactor: 0
