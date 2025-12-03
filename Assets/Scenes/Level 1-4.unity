@@ -1742,8 +1742,8 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!61 &963472166
-BoxCollider2D:
+--- !u!60 &963472166
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1765,9 +1765,12 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 80.27268, y: 24.919792}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: -40.13634, y: 12.459896}
+      - {x: -40.13634, y: -12.459896}
+      - {x: 40.13634, y: -12.459896}
+      - {x: 40.13634, y: 12.459896}
 --- !u!1 &968318544
 GameObject:
   m_ObjectHideFlags: 0
