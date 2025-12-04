@@ -229,12 +229,28 @@ public class LaserBeam : MonoBehaviour
 
             // 이미 이번 데미지 주기에서 처리한 객체는 건너뛰기
             if (damagedObjects.Contains(hitObject)) continue;
+
+            // 보스 데미지 처리
+            Stage1Boss stage1Boss = hitObject.GetComponent<Stage1Boss>();
+            if (stage1Boss != null)
+            {
+                stage1Boss.ApplyDamage(damage);
+            }
+
+            Stage3Boss stage3Boss = hitObject.GetComponent<Stage3Boss>();
+            if (stage3Boss != null)
+            {
+                stage3Boss.ApplyDamage(damage);
+            }
+
             if (!hitObject.CompareTag("Breakable")) continue;
 
             // --- 타일맵인지 체크 ---
             Tilemap tilemap = hitObject.GetComponent<Tilemap>();
             if (tilemap != null)
             {
+                Debug.Log("타일");
+
                 Vector3 hitPos = hit.point - hit.normal * 0.01f; // 경계면 보정
                 Vector3Int cell = tilemap.WorldToCell(hitPos);
 
@@ -247,13 +263,6 @@ public class LaserBeam : MonoBehaviour
                 }
 
                 continue;
-            }
-
-            // 여기서 데미지 처리
-            Stage3Boss boss = hitObject.GetComponent<Stage3Boss>();
-            if (boss != null)
-            {
-                boss.ApplyDamage(damage);
             }
 
             damagedObjects.Add(hitObject);
