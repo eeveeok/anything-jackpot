@@ -275,7 +275,7 @@ public class LaserBeam : MonoBehaviour
     void DamageTile(Tilemap tilemap, Vector3Int cell)
     {
         if (!tileHealth.ContainsKey(cell))
-            tileHealth[cell] = 2; // 초기 HP 지정
+            tileHealth[cell] = 1; // 초기 HP 지정
 
         tileHealth[cell]--;
 

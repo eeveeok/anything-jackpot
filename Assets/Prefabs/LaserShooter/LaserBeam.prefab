@@ -168,8 +168,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33f8476db77ad584284c4a1d96002dc3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
-  damageInterval: 0.2
+  damage: 2.5
+  damageInterval: 0.05
   spawnDistance: 0.5
   layerMask:
     serializedVersion: 2
