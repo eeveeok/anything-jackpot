@@ -138,7 +138,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5567554072073979546}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1fdfa607a46425409d5192ba25ec7bf, type: 3}
   m_Name: 
@@ -154,6 +154,9 @@ MonoBehaviour:
   recoilSmoothing: 0.1
   checkpoint: {fileID: 0}
   respawnDelay: 2
+  isDead: 0
+  invincibilityDuration: 2
+  blinkInterval: 0.1
   airMaterial: {fileID: 6200000, guid: eb69a5c0c6f92f349be5f5bb8b06c274, type: 2}
   groundCheck: {fileID: 5567554073421109413}
   groundCheckRadius: 0.5

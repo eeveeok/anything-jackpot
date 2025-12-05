@@ -22,16 +22,40 @@ public class DialogueManager : MonoBehaviour
     public DialogueData npc6Dialogue;
     public DialogueData npc7Dialogue;
 
+    [Header("Player Control Block")]
+    public LaserShooter player;  // 플레이어 오브젝트 연결
+
+
     private DialogueData currentDialogue;
     private int currentIndex = 0;
     private bool isTyping = false;
     private bool isDialogueActive = false;
+
+   // public LaserShooter playerController;   // Inspector에서 플레이어 오브젝트 연결
+
+
+    public static DialogueManager Instance;
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);   // 씬 이동해도 유지
+        }
+        else
+        {
+            Destroy(gameObject);             // 중복 생성 방지
+        }
+    }
+
 
     void Start()
     {
         dialoguePanel.SetActive(false);
         nextIndicator.SetActive(false);
         portraitImage.SetActive(false);   // 처음에 초상화 OFF
+        DialogueManager.Instance.StartDialogue(npc1Dialogue);
     }
 
     void Update()
@@ -83,6 +107,10 @@ public class DialogueManager : MonoBehaviour
         currentDialogue = dialogueData;
         currentIndex = 0;
         isDialogueActive = true;
+
+        // 플레이어 조작 OFF
+        if (player != null)
+            player.enabled = false;
 
         dialoguePanel.SetActive(true);
         nextIndicator.SetActive(false);
@@ -139,5 +167,9 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(false);
         dialogueText.text = "";
         portraitImage.SetActive(false);
+
+        // 플레이어 조작 ON
+        if (player != null)
+            player.enabled = true;
     }
 }
