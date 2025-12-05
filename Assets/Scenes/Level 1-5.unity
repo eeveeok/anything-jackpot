@@ -444,7 +444,6 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.6167946, y: 0.65390635, z: -10}
   m_LocalPosition: {x: 1.5993786, y: 0.65390635, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -9884,6 +9883,7 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 1088172717, guid: 8468eaee569623146b1e03a938dd5539, type: 3}
       propertyPath: m_TranslationOffset.x
+      value: 13.050155
       objectReference: {fileID: 0}
     - target: {fileID: 1088172717, guid: 8468eaee569623146b1e03a938dd5539, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -9899,7 +9899,6 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 1936654532, guid: 8468eaee569623146b1e03a938dd5539, type: 3}
       propertyPath: m_TranslationOffset.x
-      value: 13.604198
       value: 13.050155
       objectReference: {fileID: 0}
     - target: {fileID: 1936654532, guid: 8468eaee569623146b1e03a938dd5539, type: 3}
@@ -9996,6 +9995,7 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 5757015015911724021, guid: 8468eaee569623146b1e03a938dd5539, type: 3}
       propertyPath: m_TranslationOffset.x
+      value: 2.1101553
       objectReference: {fileID: 0}
     - target: {fileID: 5757015015911724021, guid: 8468eaee569623146b1e03a938dd5539, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -10011,7 +10011,6 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 5757015015941157963, guid: 8468eaee569623146b1e03a938dd5539, type: 3}
       propertyPath: m_TranslationOffset.x
-      value: 2.6641986
       value: 2.1101553
       objectReference: {fileID: 0}
     - target: {fileID: 5757015015941157963, guid: 8468eaee569623146b1e03a938dd5539, type: 3}
