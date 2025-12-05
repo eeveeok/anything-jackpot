@@ -320,7 +320,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.61606, y: 2.3000097, z: -10}
+  m_LocalPosition: {x: 2.8953876, y: 2.3000097, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -430,7 +430,8 @@ GameObject:
   - component: {fileID: 697403302}
   - component: {fileID: 697403304}
   - component: {fileID: 697403303}
-  - component: {fileID: 697403307}
+  - component: {fileID: 697403306}
+  - component: {fileID: 697403305}
   m_Layer: 6
   m_Name: Ground
   m_TagString: Untagged
@@ -10686,8 +10687,8 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!19719996 &697403307
-TilemapCollider2D:
+--- !u!60 &697403305
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -10700,8 +10701,98 @@ TilemapCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_MaximumTileChangeCount: 1000
-  m_ExtrusionFactor: 0
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 30.99999, y: -10}
+      - {x: 32, y: -8.999989}
+      - {x: 32.000008, y: -5.999993}
+      - {x: 33, y: -4.999989}
+      - {x: 33.000008, y: -3.9999928}
+      - {x: 34, y: -2.9999893}
+      - {x: 34.000008, y: -1.9999928}
+      - {x: 37.00001, y: 1}
+      - {x: 44.000008, y: 0.9999925}
+      - {x: 45.00001, y: 0}
+      - {x: 46.000008, y: -0.0000075000003}
+      - {x: 49.00001, y: -3}
+      - {x: 50.000008, y: -3.0000076}
+      - {x: 51.00001, y: -4}
+      - {x: 52.000008, y: -4.0000076}
+      - {x: 53.00001, y: -5}
+      - {x: 54.000008, y: -5.0000076}
+      - {x: 55.000015, y: -6}
+      - {x: 56.000008, y: -6.0000076}
+      - {x: 57.000015, y: -7}
+      - {x: 59.000008, y: -7.000007}
+      - {x: 62.000015, y: -10}
+      - {x: 76, y: -9.99997}
+      - {x: 75.99997, y: 17}
+      - {x: 1, y: 16.999971}
+      - {x: 1.0000076, y: 15.999992}
+      - {x: 2.0000107, y: 15}
+      - {x: 6.000007, y: 14.999992}
+      - {x: 7.0000114, y: 14}
+      - {x: 15.000009, y: 13.999992}
+      - {x: 16.000011, y: 13}
+      - {x: 18.000008, y: 12.999993}
+      - {x: 19.000011, y: 12}
+      - {x: 21.000008, y: 11.999993}
+      - {x: 22.000011, y: 11}
+      - {x: 61, y: 10.99997}
+      - {x: 61.000034, y: 10}
+      - {x: 62, y: 9.99997}
+      - {x: 61.99997, y: 8}
+      - {x: 61, y: 7.9999704}
+      - {x: 60.999996, y: 4.999993}
+      - {x: 58, y: 1.9999893}
+      - {x: 57.999992, y: 0.9999927}
+      - {x: 55.99999, y: -1}
+      - {x: 53.999992, y: -0.9999925}
+      - {x: 52.999992, y: 0}
+      - {x: 51.999992, y: 0.0000075000003}
+      - {x: 51, y: 1.0000108}
+      - {x: 50.999992, y: 3.0000076}
+      - {x: 50, y: 4.000011}
+      - {x: 49.999992, y: 5.0000076}
+      - {x: 48.999992, y: 6}
+      - {x: 28, y: 5.999971}
+      - {x: 28.000029, y: -10}
+    - - {x: 4.999989, y: -2}
+      - {x: 6, y: -0.9999892}
+      - {x: 5.999971, y: 1}
+      - {x: -3, y: 0.99997073}
+      - {x: -2.9999924, y: -1.0000076}
+      - {x: -1.9999893, y: -2}
+--- !u!50 &697403306
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697403301}
+  m_BodyType: 2
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &760586112
 GameObject:
   m_ObjectHideFlags: 0
@@ -11099,15 +11190,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.x
-      value: -6.418614
+      value: -1.618134
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.y
-      value: -1.8309702
+      value: -1.8309703
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.z
-      value: 7.1428566
+      value: 7.1428576
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_Sources.Array.data[0].sourceTransform
@@ -11115,15 +11206,15 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.x
-      value: 26.551388
+      value: 31.351868
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.y
-      value: -1.8309702
+      value: -1.8309703
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.z
-      value: 7.1428566
+      value: 7.1428576
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_Sources.Array.data[0].sourceTransform

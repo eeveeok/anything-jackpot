@@ -1072,7 +1072,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.7408924, y: 4.269991, z: -10}
+  m_LocalPosition: {x: -0.9797611, y: 4.269991, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1432,6 +1432,7 @@ GameObject:
   - component: {fileID: 1181673647}
   - component: {fileID: 1181673649}
   - component: {fileID: 1181673648}
+  - component: {fileID: 1181673651}
   - component: {fileID: 1181673650}
   m_Layer: 6
   m_Name: Ground
@@ -6980,8 +6981,8 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!19719996 &1181673650
-TilemapCollider2D:
+--- !u!60 &1181673650
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -6994,8 +6995,65 @@ TilemapCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_MaximumTileChangeCount: 1000
-  m_ExtrusionFactor: 0
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 52.999973, y: 7}
+      - {x: 52.999973, y: 9}
+      - {x: 47, y: 8.99997}
+      - {x: 47.00003, y: 7}
+    - - {x: 33.999973, y: -10}
+      - {x: 33.999992, y: -7.999992}
+      - {x: 18.999989, y: 7}
+      - {x: 14, y: 6.9999704}
+      - {x: 13.999971, y: -3}
+      - {x: 9.999993, y: -2.9999924}
+      - {x: 8.999989, y: -2}
+      - {x: 7.999993, y: -1.9999924}
+      - {x: 6.999989, y: -1}
+      - {x: 5.999993, y: -0.9999925}
+      - {x: 4.999989, y: 0}
+      - {x: 1.9999928, y: 0.0000075000003}
+      - {x: 0.9999892, y: 1}
+      - {x: -0.0000073, y: 1.0000075}
+      - {x: -1.0000108, y: 2}
+      - {x: -2.0000072, y: 2.0000076}
+      - {x: -3.0000107, y: 3}
+      - {x: -12, y: 2.999971}
+      - {x: -11.99997, y: -10}
+    - - {x: 39.999973, y: 3}
+      - {x: 39.999973, y: 5}
+      - {x: 34, y: 4.999971}
+      - {x: 34.00003, y: 3}
+--- !u!50 &1181673651
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1181673646}
+  m_BodyType: 2
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1001 &1530653024
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7005,15 +7063,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.x
-      value: -3.6506371
+      value: 1.1498294
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.y
-      value: -3.2380993
+      value: -3.2380998
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.z
-      value: 7.1428566
+      value: 7.1428576
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_Sources.Array.data[0].sourceTransform
@@ -7021,15 +7079,15 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.x
-      value: 29.319365
+      value: 34.11983
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.y
-      value: -3.2380993
+      value: -3.2380998
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.z
-      value: 7.1428566
+      value: 7.1428576
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_Sources.Array.data[0].sourceTransform
