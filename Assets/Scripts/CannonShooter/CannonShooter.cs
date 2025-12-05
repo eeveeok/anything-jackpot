@@ -325,7 +325,7 @@ public class CannonShooter : MonoBehaviour
     {
         if (isDead || isInvincible) return;
 
-        if (collision.CompareTag("BossAttack") || collision.CompareTag("Hazard"))
+        if (collision.CompareTag("BossAttack") || collision.CompareTag("Spike"))
         {
             PlayerDie();
         }

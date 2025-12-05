@@ -29,7 +29,12 @@ public class LaserShooter : MonoBehaviour
     public float invincibilityDuration = 2f;  // 무적 지속 시간
     public float blinkInterval = 0.1f;       // 깜빡임 간격
 
-    private bool isInvincible = false;       // 무적 상태 여부
+    [Header("물리 설정")]
+    public float normalDrag = 0.5f;
+    public float bounceDrag = 3f; // 바운스 중 높은 드래그로 빠른 감속
+
+    [HideInInspector]
+    public bool isBounced = false;       // 튕기는지 여부
 
     public PhysicsMaterial2D airMaterial;
     private Rigidbody2D rb;
@@ -37,6 +42,7 @@ public class LaserShooter : MonoBehaviour
     private bool isGrounded;
     private bool isFacingRight = true;
     private bool isLaserActive = false;
+    private bool isInvincible = false;       // 무적 상태 여부
     private GameObject currentLaser;
     private Camera mainCamera;
 
@@ -88,6 +94,7 @@ public class LaserShooter : MonoBehaviour
     void Update()
     {
         /////
+        //Debug.Log(isBounced);
 
         HandleInput();
         UpdateFacingDirection();
@@ -125,7 +132,7 @@ public class LaserShooter : MonoBehaviour
         }
 
         // 레이저 발사/중지 입력
-        if ((Input.GetKeyDown(KeyCode.X) || Input.GetMouseButtonDown(0)) && !isLaserActive)
+        if ((Input.GetMouseButtonDown(0)) && !isLaserActive)
         {
             StartLaser();
             animator.SetBool("Fire", true);
@@ -140,8 +147,12 @@ public class LaserShooter : MonoBehaviour
     void Move()
     {
         float currentMoveSpeed = isLaserActive ? moveSpeed * 0.6f : moveSpeed;
+
         Vector2 newVelocity = new Vector2(horizontalInput * currentMoveSpeed, rb.velocity.y);
-        rb.velocity = newVelocity;
+        if (!isBounced)
+        {
+            rb.velocity = newVelocity;
+        }
 
         animator.SetFloat("Speed", newVelocity.magnitude);
     }
@@ -277,10 +288,20 @@ public class LaserShooter : MonoBehaviour
 
     void ApplyInitialRecoil(Vector2 laserDirection)
     {
+        // 바운드 중일 때는 반동 힘 감소
+        float currentRecoilForce = initialRecoilForce;
+        float currentVerticalMultiplier = verticalRecoilMultiplier;
+
+        if (isBounced)
+        {
+            currentRecoilForce *= 0.3f;
+            currentVerticalMultiplier *= 0.3f;
+        }
+
         // 초기 반동은 레이저 발사 방향의 반대
         Vector2 recoilDirection = -laserDirection.normalized;
-        Vector2 recoil = recoilDirection * initialRecoilForce;
-        recoil.y *= verticalRecoilMultiplier;
+        Vector2 recoil = recoilDirection * currentRecoilForce;
+        recoil.y *= currentVerticalMultiplier;
 
         rb.AddForce(recoil, ForceMode2D.Impulse);
 
@@ -293,6 +314,16 @@ public class LaserShooter : MonoBehaviour
 
     void ApplyContinuousRecoil()
     {
+        // 바운드 중일 때는 반동 힘 감소
+        float currentRecoilForce = continuousRecoilForce;
+        float currentVerticalMultiplier = verticalRecoilMultiplier * 0.3f;
+
+        if (isBounced)
+        {
+            currentRecoilForce *= 0.3f;
+            currentVerticalMultiplier *= 0.3f;
+        }
+
         // 실시간 마우스 위치로 반동 방향 계산
         Vector3 mousePosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         Vector2 currentDirection = new Vector2(
@@ -304,8 +335,8 @@ public class LaserShooter : MonoBehaviour
         Vector2 recoilDirection = -currentDirection.normalized;
 
         // 지속적인 반동 적용
-        Vector2 targetRecoil = recoilDirection * continuousRecoilForce;
-        targetRecoil.y *= verticalRecoilMultiplier * 0.3f;
+        Vector2 targetRecoil = recoilDirection * currentRecoilForce;
+        targetRecoil.y *= currentVerticalMultiplier;
 
         // 부드러운 반동 적용
         Vector2 smoothRecoil = Vector2.SmoothDamp(
@@ -322,10 +353,6 @@ public class LaserShooter : MonoBehaviour
         {
             rb.velocity = rb.velocity.normalized * maxRecoilVelocity;
         }
-
-        // 디버그: 반동 힘 시각화
-        Debug.DrawRay(transform.position, recoilDirection * 3f, Color.cyan);
-        Debug.DrawRay(transform.position, currentDirection * 2f, Color.yellow); // 현재 레이저 방향
     }
 
     // --------------------------------------------------
@@ -430,6 +457,8 @@ public class LaserShooter : MonoBehaviour
 
         if (animator != null)
             animator.enabled = visible;
+
+        rb.isKinematic = !visible;
     }
 
     // --------------------------------------------------
@@ -442,6 +471,14 @@ public class LaserShooter : MonoBehaviour
         if (collision.CompareTag("BossAttack") || collision.CompareTag("Spike"))
         {
             PlayerDie();
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (isBounced && (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Spike")))
+        {
+            isBounced = false;
         }
     }
 

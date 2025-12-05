@@ -17,9 +17,9 @@ public class Stage1Boss : MonoBehaviour
 
     [Header("레퍼런스")]
     public Transform player;
-    public Animator anim;
     public GameObject meteorPrefab;        // 메테오 프리팹
     public GameObject featherPrefab;       // 깃털 프리팹
+    public GameObject portal;              // 보스 사망 시 활성화 될 포탈
 
     [Header("보스 스탯")]
     public float maxHP = 800f;
@@ -27,7 +27,7 @@ public class Stage1Boss : MonoBehaviour
 
     [Header("추적 AI")]
     public float followSpeed = 8f;
-    public float followStopDistance = 2f;   // 플레이어와 거리 유지
+    public float followStopDistance = 3f;   // 플레이어와 거리 유지
 
     [Header("패턴 설정")]
     public float idleDelay = 2f;
@@ -48,15 +48,27 @@ public class Stage1Boss : MonoBehaviour
     public float cameraShakeIntensity = 20f;
     public float cameraShakeDuration = 1.5f;
 
+    [Header("죽음 이펙트 설정")]
+    [SerializeField] private GameObject deathExplosionPrefab; // 죽음 폭발 프리팹
+    [SerializeField] private int explosionCount = 10; // 생성할 폭발 수
+    [SerializeField] private float explosionRadius = 3f; // 생성 반경
+    [SerializeField] private float explosionInterval = 0.1f; // 생성 간격
+
     private Rigidbody2D rb;
     private bool isRage = false;
     private bool isInPattern = false;
-    private SpriteRenderer spriteRenderer;
     private Collider2D bossCollider;
 
     // 보스 색상 관련
     private SpriteRenderer bossSpriteRenderer;
     private Color originalBossColor;
+
+    // 분노 모드 효과 관련
+    private GameObject rageAuraInstance;
+    private GameObject rageTextInstance;
+    private Coroutine ragePulseCoroutine;
+    private Color rageColor = new Color(1f, 0.3f, 0.3f, 1f); // 분노 모드 색상
+    private Color originalSpriteColor;
 
     // 메모리 관리
     private List<GameObject> activeEffects = new List<GameObject>();
@@ -67,7 +79,6 @@ public class Stage1Boss : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
         bossCollider = GetComponent<Collider2D>();
 
         // 보스 스프라이트 렌더러 참조
@@ -75,10 +86,11 @@ public class Stage1Boss : MonoBehaviour
         if (bossSpriteRenderer != null)
         {
             originalBossColor = bossSpriteRenderer.color;
+            originalSpriteColor = bossSpriteRenderer.color;
         }
 
         currentHP = maxHP;
-        
+
         // 코루틴을 리스트에 추가
         Coroutine routine = StartCoroutine(BossRoutine());
         activeCoroutines.Add(routine);
@@ -94,6 +106,12 @@ public class Stage1Boss : MonoBehaviour
 
         // 보스가 플레이어를 바라보도록 업데이트
         UpdateBossFacing();
+
+        // 분노 모드 시 추가 효과
+        if (isRage)
+        {
+            UpdateRageEffects();
+        }
     }
 
     // ----------------------------------------------------------
@@ -158,8 +176,7 @@ public class Stage1Boss : MonoBehaviour
             if (!isRage && currentHP <= maxHP * 0.4f)
             {
                 isRage = true;
-                //anim.SetTrigger("rage");
-                Debug.Log("보스 분노 모드 돌입!");
+                EnterRageMode();
                 yield return new WaitForSeconds(1.5f);
 
                 // 분노 모드 진입 시 패턴 기록 초기화
@@ -210,6 +227,35 @@ public class Stage1Boss : MonoBehaviour
                 }
             }
         }
+    }
+
+    // ----------------------------------------------------------
+    //              분노 모드 진입 및 효과
+    // ----------------------------------------------------------
+    void EnterRageMode()
+    {
+        Debug.Log("보스 분노 모드 돌입!");
+
+        // 1. 색상 변경
+        if (bossSpriteRenderer != null)
+        {
+            bossSpriteRenderer.color = rageColor;
+        }
+
+        // 2. 카메라 흔들기 효과
+        Coroutine shakeRoutine = StartCoroutine(RageCameraShake());
+        activeCoroutines.Add(shakeRoutine);
+    }
+
+    IEnumerator RageCameraShake()
+    {
+        yield return StartCoroutine(ShakeCinemachineCamera(1f, cameraShakeIntensity * 1.5f));
+    }
+
+    void UpdateRageEffects()
+    {
+        // 분노 모드 중 지속 효과 업데이트
+        // 예: 주기적인 작은 카메라 진동, 추가 이펙트 등
     }
 
     // 중복되지 않는 패턴 선택 메서드
@@ -266,7 +312,11 @@ public class Stage1Boss : MonoBehaviour
                 float t = elapsedTime / darkenTime;
 
                 // 검은색으로 서서히 변화
-                bossSpriteRenderer.color = Color.Lerp(Color.white, Color.black, t);
+                bossSpriteRenderer.color = Color.Lerp(
+                    isRage ? rageColor : originalSpriteColor,
+                    Color.black,
+                    t
+                );
                 yield return null;
             }
 
@@ -284,12 +334,16 @@ public class Stage1Boss : MonoBehaviour
                 float t = elapsedTime / darkenTime;
 
                 // 원래 색으로 복원
-                bossSpriteRenderer.color = Color.Lerp(Color.black, Color.white, t);
+                bossSpriteRenderer.color = Color.Lerp(
+                    Color.black,
+                    isRage ? rageColor : originalSpriteColor,
+                    t
+                );
                 yield return null;
             }
 
             // 정확히 원래 색으로
-            bossSpriteRenderer.color = Color.white;
+            bossSpriteRenderer.color = isRage ? rageColor : originalSpriteColor;
         }
 
         // --------------------------------------------------
@@ -351,7 +405,7 @@ public class Stage1Boss : MonoBehaviour
         // --------------------------------------------------
         Coroutine shockwaveRoutine = StartCoroutine(CreateShockwave(slamTarget));
         activeCoroutines.Add(shockwaveRoutine);
-        
+
         yield return shockwaveRoutine;
 
         yield return new WaitForSeconds(0.5f);
@@ -573,7 +627,7 @@ public class Stage1Boss : MonoBehaviour
             ring.transform.parent = explosion.transform;
 
             SpriteRenderer sr = ring.AddComponent<SpriteRenderer>();
-            
+
             // 텍스처 풀에서 가져오기
             Texture2D texture = GetTextureFromPool(16, 16);
             if (texture != null)
@@ -746,7 +800,7 @@ public class Stage1Boss : MonoBehaviour
 
         // 일정 시간 후 깃털 정리
         yield return new WaitForSeconds(2f);
-        
+
         foreach (var feather in spawnedFeathers)
         {
             if (feather != null)
@@ -1035,7 +1089,7 @@ public class Stage1Boss : MonoBehaviour
                 RegisterEffect(explosion);
                 Destroy(explosion, 1f);
             }
-            
+
             Destroy(meteor);
             meteorList.Remove(meteor);
         }
@@ -1281,7 +1335,7 @@ public class Stage1Boss : MonoBehaviour
 
         List<GameObject> rageFeathers = new List<GameObject>();
         int rageFeatherCount = featherCount * 2;
-        
+
         for (int i = 0; i < rageFeatherCount; i++)
         {
             Vector2 playerDir = (player.position - transform.position).normalized;
@@ -1290,7 +1344,7 @@ public class Stage1Boss : MonoBehaviour
 
             GameObject feather = Instantiate(featherPrefab, transform.position, Quaternion.identity);
             rageFeathers.Add(feather);
-            
+
             Rigidbody2D featherRb = feather.GetComponent<Rigidbody2D>();
 
             if (featherRb != null)
@@ -1305,7 +1359,7 @@ public class Stage1Boss : MonoBehaviour
 
         // 일정 시간 후 깃털 정리
         yield return new WaitForSeconds(3f);
-        
+
         foreach (var feather in rageFeathers)
         {
             if (feather != null)
@@ -1393,18 +1447,19 @@ public class Stage1Boss : MonoBehaviour
 
     IEnumerator FlashRed()
     {
-        if (spriteRenderer != null)
+        if (bossSpriteRenderer != null)
         {
-            spriteRenderer.color = Color.red;
+            Color originalColor = isRage ? rageColor : originalSpriteColor;
+            bossSpriteRenderer.color = isRage ? Color.magenta : Color.red;;
             yield return new WaitForSeconds(0.1f);
-            spriteRenderer.color = Color.white;
+            bossSpriteRenderer.color = originalColor;
         }
     }
 
     void Die()
     {
         StopAllCoroutines();
-        
+
         // 모든 활성 코루틴 정리
         foreach (var coroutine in activeCoroutines)
         {
@@ -1412,12 +1467,21 @@ public class Stage1Boss : MonoBehaviour
                 StopCoroutine(coroutine);
         }
         activeCoroutines.Clear();
-        
+
         rb.velocity = Vector2.zero;
         isInPattern = true;
 
         //anim.SetTrigger("die");
-        Debug.Log("스테이지 2 보스 사망!");
+        Debug.Log("스테이지 1 보스 사망!");
+
+        // 포탈 활성화
+        if (portal != null)
+        {
+            portal.SetActive(true);
+        }
+
+        // 죽음 이펙트 생성
+        CreateDeathEffect();
 
         // 생성된 모든 이펙트 정리
         CleanupAllEffects();
@@ -1432,6 +1496,50 @@ public class Stage1Boss : MonoBehaviour
         Destroy(gameObject, 3f);
     }
 
+    void CreateDeathEffect()
+    {
+        if (deathExplosionPrefab == null)
+        {
+            Debug.LogWarning("Death Explosion Prefab이 할당되지 않았습니다!");
+            return;
+        }
+
+        Coroutine deathEffectRoutine = StartCoroutine(DeathEffectAnimation());
+        activeCoroutines.Add(deathEffectRoutine);
+    }
+
+    IEnumerator DeathEffectAnimation()
+    {
+        for (int i = 0; i < explosionCount; i++)
+        {
+            // 랜덤 위치 계산
+            Vector2 randomOffset = Random.insideUnitCircle * explosionRadius;
+            Vector2 spawnPos = (Vector2)transform.position + randomOffset;
+
+            // 프리팹 인스턴스 생성
+            GameObject explosion = Instantiate(
+                deathExplosionPrefab,
+                spawnPos,
+                Quaternion.identity
+            );
+
+            // 랜덤 회전 적용 (선택사항)
+            if (Random.value > 0.5f)
+            {
+                explosion.transform.Rotate(0f, 0f, Random.Range(0f, 360f));
+            }
+
+            // 랜덤 크기 적용 (선택사항)
+            float randomScale = Random.Range(0.8f, 1.2f);
+            explosion.transform.localScale = Vector3.one * randomScale;
+
+            // 생성된 이펙트를 자식으로 설정하여 관리
+            explosion.transform.parent = transform;
+
+            yield return new WaitForSeconds(explosionInterval);
+        }
+    }
+
     // ----------------------------------------------------------
     //                 메모리 관리 메서드
     // ----------------------------------------------------------
@@ -1440,7 +1548,7 @@ public class Stage1Boss : MonoBehaviour
     private Material GetOrCreateMaterial(string shaderName, Color color)
     {
         string key = $"{shaderName}_{color.GetHashCode()}";
-        
+
         if (!materialCache.ContainsKey(key))
         {
             Shader shader = Shader.Find(shaderName);
@@ -1451,7 +1559,7 @@ public class Stage1Boss : MonoBehaviour
                 materialCache[key] = mat;
             }
         }
-        
+
         return materialCache.ContainsKey(key) ? materialCache[key] : null;
     }
 
@@ -1476,16 +1584,10 @@ public class Stage1Boss : MonoBehaviour
                 return texture;
             }
         }
-        
+
         Texture2D newTexture = new Texture2D(width, height);
         texturePool.Enqueue(newTexture);
         return newTexture;
-    }
-
-    private void ReturnTextureToPool(Texture2D texture)
-    {
-        if (texture != null)
-            texturePool.Enqueue(texture);
     }
 
     private void ClearTexturePool()
@@ -1528,17 +1630,5 @@ public class Stage1Boss : MonoBehaviour
         CleanupAllEffects();
         ClearMaterialCache();
         ClearTexturePool();
-    }
-
-    // ----------------------------------------------------------
-    //                 시각화 (에디터 디버그)
-    // ----------------------------------------------------------
-    private void OnDrawGizmosSelected()
-    {
-        if (!Application.isPlaying) return;
-
-        // 깃털 폭풍 위치 표시
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(featherStormPosition, Vector3.one * 2f);
     }
 }

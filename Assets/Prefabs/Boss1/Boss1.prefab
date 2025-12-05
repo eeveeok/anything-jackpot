@@ -175,13 +175,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  anim: {fileID: 0}
   meteorPrefab: {fileID: 4996263485621363842, guid: 490f91da8d4d3a2429f80b9fe9293014, type: 3}
   featherPrefab: {fileID: 4369617553841242971, guid: 78e7ad93c5c3fff469ccee40f520733a, type: 3}
+  portal: {fileID: 0}
   maxHP: 800
   currentHP: 0
   followSpeed: 8
-  followStopDistance: 2
+  followStopDistance: 3
   idleDelay: 2
   groundSlamHeight: 10
   groundSlamRadius: 5
@@ -195,3 +195,7 @@ MonoBehaviour:
   virtualCamera: {fileID: 0}
   cameraShakeIntensity: 20
   cameraShakeDuration: 1.5
+  deathExplosionPrefab: {fileID: 2559277340021799047, guid: a41b05d67a8b91d40b89e1c61656b5b8, type: 3}
+  explosionCount: 10
+  explosionRadius: 3
+  explosionInterval: 0.1

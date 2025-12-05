@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Cinemachine;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,9 +19,9 @@ public class Stage3Boss : MonoBehaviour
 
     [Header("레퍼런스")]
     public Transform player;
-    public Animator anim;
     public LaserBeam laserBeam;
     public GameObject energyWavePrefab;
+    public GameObject portal;              // 보스 사망 시 활성화 될 포탈
 
     [Header("보스 스탯")]
     public float maxHP = 1000f;
@@ -59,19 +60,22 @@ public class Stage3Boss : MonoBehaviour
     public float rageSlamEffectDuration = 2f;
     public Color normalSlamColor = Color.red;
     public Color rageSlamColor = Color.magenta;
-    public float cameraShakeIntensity = 0.3f;
-    public float cameraShakeDuration = 0.2f;
     public Material circleMaterial;             // 원형 이펙트에 사용할 머티리얼
 
-    [Header("디버그 설정")]
-    public bool showSlamRange = true;           // 손바닥 범위 시각화
-    public bool showRushRange = true;           // 돌진 범위 시각화
-    public Color debugSlamColor = Color.red;    // 디버그 색상
-    public Color debugRushColor = Color.yellow; // 돌진 디버그 색상
-
     [Header("충돌 데미지 설정")]
-    public float rushDamageRadius = 2f;         // 돌진 시 데미지 반경
+    public float rushDamageRadius = 3f;         // 돌진 시 데미지 반경
     public bool canDealRushDamage = true;       // 돌진 데미지 활성화
+
+    [Header("카메라 설정")]
+    public CinemachineVirtualCamera virtualCamera;
+    public float cameraShakeIntensity = 20f;
+    public float cameraShakeDuration = 1.5f;
+
+    [Header("죽음 이펙트 설정")]
+    [SerializeField] private GameObject deathExplosionPrefab; // 죽음 폭발 프리팹
+    [SerializeField] private int explosionCount = 10; // 생성할 폭발 수
+    [SerializeField] private float explosionRadius = 3f; // 생성 반경
+    [SerializeField] private float explosionInterval = 0.1f; // 생성 간격
 
     private Rigidbody2D rb;
     private bool isRage = false;
@@ -321,7 +325,7 @@ public class Stage3Boss : MonoBehaviour
         }
 
         // 카메라 흔들기
-        Coroutine shakeRoutine = StartCoroutine(CameraShake(0.5f, 0.5f));
+        Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(10f, 1.5f));
         activeCoroutines.Add(shakeRoutine);
     }
 
@@ -501,7 +505,7 @@ public class Stage3Boss : MonoBehaviour
             }
 
             // 카메라 흔들기
-            Coroutine shakeRoutine = StartCoroutine(CameraShake(cameraShakeIntensity * 1.5f, cameraShakeDuration));
+            Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(cameraShakeIntensity * 1.5f, cameraShakeDuration));
             activeCoroutines.Add(shakeRoutine);
 
             yield return new WaitForSeconds(rageSlamInterval * 0.7f);
@@ -693,8 +697,8 @@ public class Stage3Boss : MonoBehaviour
         CreateShockwave(position, isRageEffect);
 
         // 카메라 흔들기
-        Coroutine shakeRoutine = StartCoroutine(CameraShake(
-            isRageEffect ? cameraShakeIntensity * 2f : cameraShakeIntensity,
+        Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(
+            isRageEffect ? cameraShakeIntensity * 1.5f : cameraShakeIntensity,
             cameraShakeDuration
         ));
         activeCoroutines.Add(shakeRoutine);
@@ -785,24 +789,44 @@ public class Stage3Boss : MonoBehaviour
     //              카메라 흔들기 효과
     // ----------------------------------------------------------
 
-    IEnumerator CameraShake(float intensity, float duration)
+    // Cinemachine 카메라 흔들림
+    IEnumerator ShakeCinemachineCamera(float duration, float intensity)
     {
-        if (mainCamera == null) yield break;
+        if (virtualCamera == null) yield break;
+
+        // Cinemachine Noise 컴포넌트 가져오기
+        CinemachineBasicMultiChannelPerlin noise = virtualCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
+
+        if (noise == null) yield break;
+
+        // 기존 설정 저장
+        float originalAmplitude = noise.m_AmplitudeGain;
+        float originalFrequency = noise.m_FrequencyGain;
+
+        // 흔들림 시작
+        noise.m_AmplitudeGain = intensity;
+        noise.m_FrequencyGain = intensity * 2f; // 진동 빈도
 
         float elapsed = 0f;
 
+        // 점점 약해지는 흔들림
         while (elapsed < duration)
         {
-            float x = originalCameraPos.x + Random.Range(-intensity, intensity);
-            float y = originalCameraPos.y + Random.Range(-intensity, intensity);
-
-            mainCamera.transform.position = new Vector3(x, y, originalCameraPos.z);
-
             elapsed += Time.deltaTime;
+
+            // 시간에 따라 흔들림 강도 감소
+            float t = elapsed / duration;
+            float currentIntensity = Mathf.Lerp(intensity, 0f, t);
+
+            noise.m_AmplitudeGain = currentIntensity;
+            noise.m_FrequencyGain = currentIntensity * 2f;
+
             yield return null;
         }
 
-        mainCamera.transform.position = originalCameraPos;
+        // 원래 설정으로 복원
+        noise.m_AmplitudeGain = originalAmplitude;
+        noise.m_FrequencyGain = originalFrequency;
     }
 
     // ----------------------------------------------------------
@@ -815,10 +839,6 @@ public class Stage3Boss : MonoBehaviour
         // 피격 효과 (빨간색으로 변했다가 복원)
         Coroutine flashRoutine = StartCoroutine(FlashRed());
         activeCoroutines.Add(flashRoutine);
-
-        // 데미지 받을 때마다 작은 카메라 흔들기
-        Coroutine shakeRoutine = StartCoroutine(CameraShake(0.1f, 0.1f));
-        activeCoroutines.Add(shakeRoutine);
 
         // 피격 이펙트
         CreateHitEffect();
@@ -915,21 +935,50 @@ public class Stage3Boss : MonoBehaviour
         ClearTexturePool();
 
         Destroy(gameObject, 3f);
-    }
 
+        portal.SetActive(true);
+    }
     void CreateDeathEffect()
     {
+        if (deathExplosionPrefab == null)
+        {
+            Debug.LogWarning("Death Explosion Prefab이 할당되지 않았습니다!");
+            return;
+        }
+
         Coroutine deathEffectRoutine = StartCoroutine(DeathEffectAnimation());
         activeCoroutines.Add(deathEffectRoutine);
     }
 
     IEnumerator DeathEffectAnimation()
     {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < explosionCount; i++)
         {
-            Vector2 spawnPos = (Vector2)transform.position + Random.insideUnitCircle * 3f;
-            CreateSlamEffect(spawnPos, Random.Range(1f, 3f), Color.black, false);
-            yield return new WaitForSeconds(0.1f);
+            // 랜덤 위치 계산
+            Vector2 randomOffset = Random.insideUnitCircle * explosionRadius;
+            Vector2 spawnPos = (Vector2)transform.position + randomOffset;
+
+            // 프리팹 인스턴스 생성
+            GameObject explosion = Instantiate(
+                deathExplosionPrefab,
+                spawnPos,
+                Quaternion.identity
+            );
+
+            // 랜덤 회전 적용 (선택사항)
+            if (Random.value > 0.5f)
+            {
+                explosion.transform.Rotate(0f, 0f, Random.Range(0f, 360f));
+            }
+
+            // 랜덤 크기 적용 (선택사항)
+            float randomScale = Random.Range(0.8f, 1.2f);
+            explosion.transform.localScale = Vector3.one * randomScale;
+
+            // 생성된 이펙트를 자식으로 설정하여 관리
+            explosion.transform.parent = transform;
+
+            yield return new WaitForSeconds(explosionInterval);
         }
     }
 
@@ -987,21 +1036,6 @@ public class Stage3Boss : MonoBehaviour
         return newTexture;
     }
 
-    private void ReturnTextureToPool(Texture2D texture)
-    {
-        if (texture != null)
-        {
-            // 텍스처 초기화 (투명하게)
-            Color[] clearColors = new Color[texture.width * texture.height];
-            for (int i = 0; i < clearColors.Length; i++)
-                clearColors[i] = Color.clear;
-            texture.SetPixels(clearColors);
-            texture.Apply();
-
-            texturePool.Enqueue(texture);
-        }
-    }
-
     private void ClearTexturePool()
     {
         foreach (var texture in texturePool)
@@ -1047,24 +1081,6 @@ public class Stage3Boss : MonoBehaviour
     // ----------------------------------------------------------
     //              시각화용 Gizmos (디버그 범위 표시)
     // ----------------------------------------------------------
-    private void OnDrawGizmos()
-    {
-        if (!Application.isPlaying) return;
-
-        // 돌진 범위 시각화 (돌진 중일 때만)
-        if (showRushRange && isRushing)
-        {
-            Gizmos.color = debugRushColor;
-            Gizmos.DrawWireSphere(transform.position, rushDamageRadius);
-
-            // 돌진 방향 시각화
-            Gizmos.color = Color.cyan;
-            Vector3 start = transform.position;
-            Vector3 end = start + (Vector3)rushDirection * 3f;
-            Gizmos.DrawLine(start, end);
-            Gizmos.DrawSphere(end, 0.5f);
-        }
-    }
 
     private void OnDrawGizmosSelected()
     {
