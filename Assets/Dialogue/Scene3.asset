@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Scene3
   m_EditorClassIdentifier: 
   lines:
-  - speaker: 'player '
+  - speaker: player
     text: "\uC52C3"
   - speaker: Nemo
     text: "\uC544\uBB34\uB798\uB3C4 \uC6D0\uB798 \uC138\uACC4\uB85C \uB3CC\uC544\uAC00\uC9C0\uB294
