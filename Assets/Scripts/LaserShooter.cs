@@ -29,9 +29,6 @@ public class LaserShooter : MonoBehaviour
     public float invincibilityDuration = 2f;  // 무적 지속 시간
     public float blinkInterval = 0.1f;       // 깜빡임 간격
 
-    [HideInInspector]
-    public int maxHealth = 3;
-    public int currentHealth;
     private bool isInvincible = false;       // 무적 상태 여부
 
     public PhysicsMaterial2D airMaterial;
@@ -82,8 +79,6 @@ public class LaserShooter : MonoBehaviour
         {
             col.sharedMaterial = airMaterial;
         }
-
-        currentHealth = maxHealth;
 
         // 초기 위치 저장
         lastGroundedPosition = transform.position;
