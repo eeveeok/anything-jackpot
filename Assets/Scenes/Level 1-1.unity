@@ -325,7 +325,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+<<<<<<< Updated upstream
   m_LocalPosition: {x: -1.0040207, y: 0.65390635, z: -10}
+=======
+  m_LocalPosition: {x: 5.503254, y: 0.65390635, z: -10}
+>>>>>>> Stashed changes
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13792,7 +13796,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 90919380, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 14.233505
+=======
+      value: 12.606687
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 90919380, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13808,7 +13816,11 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 1007010713, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 14.233505
+=======
+      value: 12.606687
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 1007010713, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13824,7 +13836,11 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 1229315920, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 14.233505
+=======
+      value: 12.606687
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 1229315920, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13840,7 +13856,11 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 1539910820, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 14.233505
+=======
+      value: 12.606687
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 1539910820, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13856,7 +13876,11 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 1655917927, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 14.233505
+=======
+      value: 12.606687
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 1655917927, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13920,7 +13944,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2883658640239668880, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 2.947505
+=======
+      value: 1.3206865
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 2883658640239668880, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13936,7 +13964,11 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 2883658640239668881, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 2.947505
+=======
+      value: 1.3206865
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 2883658640239668881, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13952,7 +13984,11 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 2883658640239668882, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 2.947505
+=======
+      value: 1.3206865
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 2883658640239668882, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13968,7 +14004,11 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 2883658640239668883, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 2.947505
+=======
+      value: 1.3206865
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 2883658640239668883, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
@@ -13984,7 +14024,11 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 2883658640239668884, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.x
+<<<<<<< Updated upstream
       value: 2.947505
+=======
+      value: 1.3206865
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 2883658640239668884, guid: 17acbeaf887cdf646872e49f87a6934d, type: 3}
       propertyPath: m_TranslationOffset.y
