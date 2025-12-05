@@ -1,17 +1,17 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;   
 
 public class PortalWithFade : MonoBehaviour
 {
-    public Vector3 targetPosition;              // Teleport 위치
-    public float fadeDuration = 0.5f;           // 페이드 시간
-    public float suctionSpeed = 5f;             // 빨려들어가는 속도
-    public float rotateSpeed = 360f;            // 회전 속도 (초당 360도)
+    public string sceneToLoad;                    // 이동할 씬 이름
+    public float fadeDuration = 0.5f;             // 페이드 시간
+    public float suctionSpeed = 5f;               // 빨려들어가는 속도
+    public float rotateSpeed = 360f;              // 회전 속도
 
-    public MonoBehaviour playerMovementScript;  // 플레이어 이동 스크립트
-    public CanvasGroup fadeCanvas;              // 페이드용 CanvasGroup
-    public Transform portalCenter;              // 포탈 중심 (Portal 오브젝트)
+    public MonoBehaviour playerMovementScript;    // 플레이어 이동 스크립트
+    public CanvasGroup fadeCanvas;                // 페이드용 CanvasGroup
+    public Transform portalCenter;                // 포탈 중심 (Portal 오브젝트)
 
     private bool isProcessing = false;
 
@@ -52,10 +52,8 @@ public class PortalWithFade : MonoBehaviour
             elapsed += Time.deltaTime;
             float t = elapsed / fadeDuration;
 
-            // 화면 페이드아웃
             fadeCanvas.alpha = Mathf.Lerp(0f, 1f, t);
 
-            // 빨려들기
             if (portalCenter != null)
             {
                 player.transform.position = Vector3.Lerp(
@@ -65,16 +63,20 @@ public class PortalWithFade : MonoBehaviour
                 );
             }
 
-            // 회전 효과
             player.transform.Rotate(0f, 0f, rotateSpeed * Time.deltaTime);
 
             yield return null;
         }
 
-        // 4) 순간이동
-        player.transform.position = targetPosition;
+        //4) 위치 이동 → "씬 이동"으로 변경
+        SceneManager.LoadScene(sceneToLoad);
 
-        yield return new WaitForSeconds(0.05f);
+        // 씬이 로드될 때까지 기다리기
+        yield return null;
+
+        // 여기서부터는 새 씬 
+        // 새 씬에서 FadeCanvas를 자동으로 0으로 두기 위해
+        fadeCanvas.alpha = 1f;
 
         // 5) 페이드인
         elapsed = 0f;
@@ -88,17 +90,11 @@ public class PortalWithFade : MonoBehaviour
             yield return null;
         }
 
-        // 6) 중력 복원
-        if (rb != null)
-            rb.gravityScale = originalGravity;
-
-        // 7) 이동 스크립트 재활성화
-        if (playerMovementScript != null)
-            playerMovementScript.enabled = true;
-
         isProcessing = false;
     }
 }
+
+
 
 
 
