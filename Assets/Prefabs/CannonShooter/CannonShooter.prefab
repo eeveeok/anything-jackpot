@@ -162,9 +162,9 @@ MonoBehaviour:
   moveSpeed: 5
   jumpForce: 10
   cannonEffectPrefab: {fileID: 2559277340021799047, guid: a41b05d67a8b91d40b89e1c61656b5b8, type: 3}
-  recoilForce: 35
-  recoilDuration: 0.3
-  maxRecoilVelocity: 40
+  recoilForce: 30
+  recoilDuration: 1
+  maxRecoilVelocity: 50
   shootCooldown: 0.5
   verticalRecoilMultiplier: 0.6
   effectSpawnDistance: 0.5

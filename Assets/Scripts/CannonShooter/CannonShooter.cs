@@ -90,7 +90,7 @@ public class CannonShooter : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
 
-        if ((Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.X)) && canShoot)
+        if (Input.GetMouseButtonDown(0) && canShoot && isGrounded)
         {
             ShootCannon();
         }
@@ -103,7 +103,12 @@ public class CannonShooter : MonoBehaviour
 
         bool recoilActive = Time.time - lastShootTime < recoilDuration * 0.5f;
 
-        if (!recoilActive)
+        if (!recoilActive && isGrounded)
+        {
+            rb.velocity = new Vector2(horizontalInput * currentMoveSpeed, rb.velocity.y);
+        }
+
+        if (horizontalInput != 0)
         {
             rb.velocity = new Vector2(horizontalInput * currentMoveSpeed, rb.velocity.y);
         }
@@ -189,6 +194,18 @@ public class CannonShooter : MonoBehaviour
 
         recoil.y *= verticalRecoilMultiplier;
 
+        // -----------------------------
+        // 아래로 -15° ~ +15° 범위에서는 반동 더 강하게
+        // -----------------------------
+        float angle = Vector2.SignedAngle(Vector2.down, direction);
+        // Vector2.down 기준: 0°, 좌우로 기울면 ±값
+
+        if (Mathf.Abs(angle) <= 15f)
+        {
+            recoil *= 1.3f;    // ⭐ 반동 강화
+        }
+        // -----------------------------
+
         rb.AddForce(recoil, ForceMode2D.Impulse);
 
         if (rb.velocity.magnitude > maxRecoilVelocity)
@@ -204,11 +221,13 @@ public class CannonShooter : MonoBehaviour
 
         while (elapsed < half)
         {
-            float t = 1f - elapsed / half;
+            float t = elapsed / half;
 
-            Vector2 add = recoilDirection * (recoilForce * 0.5f * t * Time.fixedDeltaTime);
+            float curve = 1f - Mathf.Pow(1f - t, 3f);
 
-            add.y = 0f;
+            Vector2 add = recoilDirection * (recoilForce * 0.5f * curve * Time.fixedDeltaTime);
+
+            add.y = 0f; // y축 반동 제거
 
             rb.AddForce(add, ForceMode2D.Force);
 
