@@ -13,7 +13,7 @@ public class CannonEffect : MonoBehaviour
     public Transform origin;
 
     [Header("타일 파괴 설정")]
-    public float tileBreakRadius = 2.5f; // 타일 파괴 반경
+    public float tileBreakRadius = 1.5f; // 타일 파괴 반경
     public float raycastDistance = 5f;   // 레이캐스트 거리
     public bool debugVisualization = true; // 디버그 시각화
 
@@ -21,6 +21,10 @@ public class CannonEffect : MonoBehaviour
     private bool hasDamaged = false;
     private Dictionary<Tilemap, Dictionary<Vector3Int, int>> tileHealthMap = new Dictionary<Tilemap, Dictionary<Vector3Int, int>>();
     private Vector2 impactPoint; // 충돌 지점 저장
+
+    Dictionary<Vector3Int, int> tileHealth = new Dictionary<Vector3Int, int>();
+
+    Dictionary<Vector3Int, int> tileHealth = new Dictionary<Vector3Int, int>();
 
     void Start()
     {
@@ -98,6 +102,7 @@ public class CannonEffect : MonoBehaviour
         {
             // 충돌이 없으면 최대 거리 지점을 impactPoint로 설정
             impactPoint = (Vector2)origin.position + direction * raycastDistance;
+            Debug.Log($"CannonEffect did not hit any breakable object. Impact point at: {impactPoint}");
         }
     }
 

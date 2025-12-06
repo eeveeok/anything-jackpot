@@ -19,7 +19,7 @@ public class Stage3Boss : MonoBehaviour
 
     [Header("레퍼런스")]
     public Transform player;
-    public GameObject laserPrefab;
+    public LaserBeam laserBeam;
     public GameObject energyWavePrefab;
     public GameObject portal;              // 보스 사망 시 활성화 될 포탈
 
@@ -34,39 +34,43 @@ public class Stage3Boss : MonoBehaviour
     [Header("기본 패턴 설정")]
     public float idleDelay = 3f;
     public int slamCount = 3;
-    public float slamInterval = 1.2f;
-    public float slamRadius = 3f;
+    public float slamInterval = 0.8f;
     public float waveInterval = 0.3f;
     public float waveSpacing = 1.5f;
-    public int rushTimes = 3;
-    public float rushSpeed = 50f;         // 증가된 돌진 속도
-    public float rushCooldown = 0.2f;     // 돌진 사이 대기 시간
-    public float rushWarningTime = 0.5f;  // 돌진 준비 시간
-    public float rushPathWidth = 5f;    // 돌진 경로 표시 너비
-    public float groundLevel = 2.3f;       // 지면 높이
-
-    [Header("레이저 패턴 설정")]
-    public float laserSpeed = 30f;             // 레이저 속도
-    public int laserCount = 5;                  // 일반 모드 레이저 발사 수
-    public float laserInterval = 0.3f;         // 레이저 발사 간격
-    public float laserWarmingTime = 0.8f;      // 레이저 발사 준비 시간
-    public float laserDuration = 2f;           // 레이저 지속 시간 (발사 후 사라지는 시간)
+    public int rushTimes = 4;
+    public float rushSpeed = 25f;         // 증가된 돌진 속도
+    public float rushDuration = 1.2f;     // 증가된 돌진 지속 시간
+    public float rushCooldown = 0.4f;     // 돌진 사이 대기 시간
+    public float rushOvershootDistance = 8f; // 증가된 오버슈트 거리
+    public float descentSpeed = 20f;      // 하강 속도
+    public float descentHeight = 3f;      // 하강 높이
+    public float rushPathWidth = 2f;      // 돌진 경로 표시 너비
+    public float rushWarningTime = 0.8f;  // 돌진 준비 시간
 
     [Header("분노 패턴 설정")]
+    public int rageSlamCount = 5;               // 분노 모드 손바닥 찍기 횟수 증가
+    public float rageSlamInterval = 0.5f;       // 더 빠른 간격
+    public float rageSlamRadius = 6f;           // 범위 증가
     public int rageWaveCount = 15;              // 더 많은 웨이브
     public float rageWaveInterval = 0.15f;      // 더 빠른 웨이브
     public float rageWaveSpacing = 2f;          // 더 넓은 간격
-    public float rageRushCooldown = 0.1f;       // 더 짧은 대기 시간
+    public float rageRushSpeed = 35f;           // 더 빠른 돌진
+    public int rageRushTimes = 6;               // 더 많은 돌진 횟수
+    public float rageRushDuration = 1.0f;       // 더 긴 돌진 지속 시간
+    public float rageRushCooldown = 0.3f;       // 더 짧은 대기 시간
+    public float rageRushOvershootDistance = 12f; // 더 많이 넘어서 감
+    public float rageDescentSpeed = 25f;        // 더 빠른 하강 속도
+    public float rageRushWarningTime = 0.5f;    // 더 짧은 경고 시간
 
     [Header("시각 효과 설정")]
     public float slamEffectDuration = 1.5f;
     public float shockwaveDuration = 0.8f;
     public float rageSlamEffectDuration = 2f;
-
-    private Color normalSlamColor = Color.red;
-    private Color rageSlamColor = Color.magenta;
-    private Color rushPathColor = new Color(1f, 0.2f, 0.2f, 0.6f); // 돌진 경로 색상
-    private Color rageRushPathColor = new Color(1f, 0f, 1f, 0.8f); // 분노 돌진 경로 색상
+    public Color normalSlamColor = Color.red;
+    public Color rageSlamColor = Color.magenta;
+    public Material circleMaterial;             // 원형 이펙트에 사용할 머티리얼
+    public Color rushPathColor = new Color(1f, 0.2f, 0.2f, 0.4f); // 돌진 경로 색상
+    public Color rageRushPathColor = new Color(1f, 0f, 1f, 0.6f); // 분노 돌진 경로 색상
 
     [Header("충돌 데미지 설정")]
     public float rushDamageRadius = 4f;         // 증가된 돌진 데미지 반경
@@ -86,11 +90,16 @@ public class Stage3Boss : MonoBehaviour
     private Rigidbody2D rb;
     private bool isRage = false;
     private bool isInPattern = false;
+    private Camera mainCamera;
+    private Vector3 originalCameraPos;
     private Sprite circleSprite;                // 동적으로 생성할 원형 스프라이트
     private Sprite lineSprite;                  // 돌진 경로 표시용 선형 스프라이트
     private bool isRushing = false;             // 돌진 중인지 확인
+    private float lastRushTime = 0f;            // 마지막 돌진 시간
+    private Vector2 rushDirection;              // 현재 돌진 방향
+    private bool isDescending = false;          // 하강 중인지 확인
+    private float originalGravityScale;         // 원래 중력 스케일 저장
     private GameObject rushPathIndicator;       // 돌진 경로 표시 오브젝트
-    private List<GameObject> rushLineIndicators = new List<GameObject>(); // 라인 마커들
 
     // Stage1Boss에서 가져온 메모리 관리 시스템
     private List<GameObject> activeEffects = new List<GameObject>();
@@ -101,10 +110,21 @@ public class Stage3Boss : MonoBehaviour
     // 보스 색상 관련
     private SpriteRenderer bossSpriteRenderer;
     private Color originalBossColor;
+    private Collider2D bossCollider;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        mainCamera = Camera.main;
+        bossCollider = GetComponent<Collider2D>();
+
+        if (mainCamera != null)
+        {
+            originalCameraPos = mainCamera.transform.position;
+        }
+
+        // 원래 중력 스케일 저장
+        originalGravityScale = rb.gravityScale;
 
         // 보스 스프라이트 렌더러 참조
         bossSpriteRenderer = GetComponent<SpriteRenderer>();
@@ -126,7 +146,7 @@ public class Stage3Boss : MonoBehaviour
 
     void Update()
     {
-        if (!isInPattern && !isRushing)
+        if (!isInPattern && !isRushing && !isDescending)
         {
             FollowPlayer();
         }
@@ -146,19 +166,26 @@ public class Stage3Boss : MonoBehaviour
     // ----------------------------------------------------------
     Sprite CreateCircleSprite()
     {
+        // 텍스처 풀에서 가져오기
         Texture2D texture = GetTextureFromPool(128, 128);
+
+        // 원의 중심
         Vector2 center = new Vector2(64, 64);
         float radius = 64;
 
+        // 텍스처에 원 그리기
         for (int y = 0; y < 128; y++)
         {
             for (int x = 0; x < 128; x++)
             {
+                // 원 안쪽인지 확인
                 float distance = Vector2.Distance(new Vector2(x, y), center);
+
                 if (distance <= radius)
                 {
+                    // 부드러운 가장자리를 위한 알파값
                     float alpha = Mathf.Clamp01(1 - (distance / radius));
-                    alpha = Mathf.Pow(alpha, 0.5f);
+                    alpha = Mathf.Pow(alpha, 0.5f); // 더 부드러운 가장자리
                     texture.SetPixel(x, y, new Color(1, 1, 1, alpha));
                 }
                 else
@@ -169,20 +196,26 @@ public class Stage3Boss : MonoBehaviour
         }
 
         texture.Apply();
+
+        // 스프라이트 생성
         return Sprite.Create(texture, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 128);
     }
 
     Sprite CreateLineSprite()
     {
+        // 선형 스프라이트 생성 (돌진 경로 표시용)
         Texture2D texture = GetTextureFromPool(128, 128);
 
+        // 수평선 그리기
         for (int y = 0; y < 128; y++)
         {
             for (int x = 0; x < 128; x++)
             {
-                if (Mathf.Abs(y - 64) <= 5)
+                // 선의 두께 (중앙에서 ±10픽셀)
+                if (Mathf.Abs(y - 64) <= 10)
                 {
-                    float alpha = Mathf.Clamp01(1 - Mathf.Abs(y - 64) / 5f);
+                    // 선형 그라데이션 (중앙에서 가장 진하고 가장자리로 갈수록 희미해짐)
+                    float alpha = Mathf.Clamp01(1 - Mathf.Abs(y - 64) / 10f);
                     texture.SetPixel(x, y, new Color(1, 1, 1, alpha));
                 }
                 else
@@ -193,6 +226,8 @@ public class Stage3Boss : MonoBehaviour
         }
 
         texture.Apply();
+
+        // 스프라이트 생성
         return Sprite.Create(texture, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 128);
     }
 
@@ -219,10 +254,10 @@ public class Stage3Boss : MonoBehaviour
     }
 
     // ----------------------------------------------------------
-    //              보스 패턴 메인 루프
+    //              보스 패턴 메인 루프 (분노 패턴 추가)
     // ----------------------------------------------------------
-    private int lastNormalPattern = -1;
-    private int lastRagePattern = -1;
+    private int lastNormalPattern = -1;  // 일반 모드에서 마지막으로 사용한 패턴
+    private int lastRagePattern = -1;    // 분노 모드에서 마지막으로 사용한 패턴
 
     IEnumerator BossRoutine()
     {
@@ -230,50 +265,94 @@ public class Stage3Boss : MonoBehaviour
         {
             yield return new WaitForSeconds(idleDelay);
 
+            // HP 50% 이하 → 분노 돌입
             if (!isRage && currentHP <= maxHP * 0.5f)
             {
                 isRage = true;
                 EnterRageMode();
                 yield return new WaitForSeconds(1.5f);
+
+                // 분노 모드 진입 시 패턴 기록 초기화
                 lastNormalPattern = -1;
                 lastRagePattern = -1;
             }
 
+            // 패턴 선택
             if (!isRage)
             {
-                int p = GetNextPattern(false);
+                // 일반 패턴
+                int p = GetNextPattern(false);  // 일반 모드 패턴 선택
+
                 switch (p)
                 {
-                    case 0: lastNormalPattern = 0; yield return StartCoroutine(Pattern_Slam()); break;
-                    case 1: lastNormalPattern = 1; yield return StartCoroutine(Pattern_EnergyWave()); break;
-                    case 2: lastNormalPattern = 2; yield return StartCoroutine(Pattern_Rush()); break;
+                    case 0:
+                        lastNormalPattern = 0;
+                        yield return StartCoroutine(Pattern_Slam());
+                        break;
+                    case 1:
+                        lastNormalPattern = 1;
+                        yield return StartCoroutine(Pattern_EnergyWave());
+                        break;
+                    case 2:
+                        lastNormalPattern = 2;
+                        yield return StartCoroutine(Pattern_Rush());
+                        break;
                 }
             }
             else
             {
-                int p = GetNextPattern(true);
+                // 분노 패턴 (더 강력하고 다양한 패턴)
+                int p = GetNextPattern(true);  // 분노 모드 패턴 선택
+
                 switch (p)
                 {
-                    case 0: lastRagePattern = 0; yield return StartCoroutine(Pattern_Slam_Rage()); break;
-                    case 1: lastRagePattern = 1; yield return StartCoroutine(Pattern_EnergyWave_Rage()); break;
-                    case 2: lastRagePattern = 2; yield return StartCoroutine(Pattern_Rush_Rage()); break;
-                    case 3: lastRagePattern = 3; yield return StartCoroutine(Pattern_Laser()); break;
-                    case 4: lastRagePattern = 4; yield return StartCoroutine(Pattern_ComboAttack()); break;
+                    case 0:
+                        lastRagePattern = 0;
+                        yield return StartCoroutine(Pattern_Slam_Rage());
+                        break;
+                    case 1:
+                        lastRagePattern = 1;
+                        yield return StartCoroutine(Pattern_EnergyWave_Rage());
+                        break;
+                    case 2:
+                        lastRagePattern = 2;
+                        yield return StartCoroutine(Pattern_Rush_Rage());
+                        break;
+                    case 3:
+                        lastRagePattern = 3;
+                        yield return StartCoroutine(Pattern_Laser());
+                        break;
+                    case 4:
+                        lastRagePattern = 4;
+                        yield return StartCoroutine(Pattern_ComboAttack());
+                        break;
                 }
             }
         }
     }
 
+    // 중복되지 않는 패턴 선택 메서드
     private int GetNextPattern(bool isRageMode)
     {
-        int availablePatternsCount = isRageMode ? 5 : 3;
+        int availablePatternsCount = isRageMode ? 5 : 3;  // 패턴 총 개수
+
+        // 선택 가능한 패턴 목록 생성
         List<int> availablePatterns = new List<int>();
-        for (int i = 0; i < availablePatternsCount; i++) availablePatterns.Add(i);
+        for (int i = 0; i < availablePatternsCount; i++)
+        {
+            availablePatterns.Add(i);
+        }
 
+        // 이전에 사용한 패턴 제외 (사용 가능한 패턴이 2개 이상일 경우)
         int lastPattern = isRageMode ? lastRagePattern : lastNormalPattern;
-        if (lastPattern != -1 && availablePatterns.Count > 1) availablePatterns.Remove(lastPattern);
+        if (lastPattern != -1 && availablePatterns.Count > 1)
+        {
+            availablePatterns.Remove(lastPattern);
+        }
 
-        return availablePatterns[Random.Range(0, availablePatterns.Count)];
+        // 랜덤 선택
+        int randomIndex = Random.Range(0, availablePatterns.Count);
+        return availablePatterns[randomIndex];
     }
 
     // ----------------------------------------------------------
@@ -282,15 +361,25 @@ public class Stage3Boss : MonoBehaviour
     void EnterRageMode()
     {
         Debug.Log("보스 분노 모드 돌입!");
+
+        // 분노 오라 이펙트 생성 (코드로)
         CreateRageAuraEffect();
 
+        // 색상 변경 (옵션)
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null) spriteRenderer.color = new Color(1f, 0.3f, 0.3f, 1f);
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = new Color(1f, 0.3f, 0.3f, 1f); // 붉은색 톤
+        }
 
+        // 카메라 흔들기
         Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(10f, 1.5f));
         activeCoroutines.Add(shakeRoutine);
     }
 
+    // ----------------------------------------------------------
+    //              분노 오라 이펙트 생성
+    // ----------------------------------------------------------
     void CreateRageAuraEffect()
     {
         GameObject aura = new GameObject("RageAura");
@@ -300,9 +389,10 @@ public class Stage3Boss : MonoBehaviour
 
         SpriteRenderer auraRenderer = aura.AddComponent<SpriteRenderer>();
         auraRenderer.sprite = circleSprite;
-        auraRenderer.color = new Color(1f, 0.2f, 0.2f, 0.3f);
+        auraRenderer.color = new Color(1f, 0.2f, 0.2f, 0.3f); // 붉은색 반투명
         auraRenderer.sortingOrder = -1;
 
+        // 오라 애니메이션
         Coroutine auraRoutine = StartCoroutine(RageAuraAnimation(aura));
         activeCoroutines.Add(auraRoutine);
     }
@@ -315,9 +405,12 @@ public class Stage3Boss : MonoBehaviour
         while (isRage && aura != null)
         {
             time += Time.deltaTime;
+
+            // 펄스 효과
             float scale = 6f + Mathf.Sin(time * pulseSpeed);
             aura.transform.localScale = new Vector3(scale, scale, 1);
 
+            // 알파값 변화
             SpriteRenderer renderer = aura.GetComponent<SpriteRenderer>();
             if (renderer != null)
             {
@@ -341,22 +434,34 @@ public class Stage3Boss : MonoBehaviour
 
     IEnumerator Pattern_Slam()
     {
+        isInPattern = true;
         rb.velocity = Vector2.zero;
+
+        Debug.Log("패턴: 손바닥 내려찍기");
 
         for (int i = 0; i < slamCount; i++)
         {
-            CreateSlamEffect(transform.position, slamRadius * 1.8f, normalSlamColor, false);
+            // 손바닥 찍기 이펙트 생성
+            CreateSlamEffect(transform.position, 4f, normalSlamColor, false);
+
             yield return new WaitForSeconds(slamInterval * 0.5f);
 
-            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, slamRadius * 1.5f, LayerMask.GetMask("Player"));
+            // 360도 범위 공격
+            float slamRadius = 4f;
+            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, slamRadius, LayerMask.GetMask("Player"));
             foreach (Collider2D hit in hits)
             {
                 LaserShooter playerScript = hit.GetComponent<LaserShooter>();
-                if (playerScript != null) playerScript.PlayerDie();
+                if (playerScript != null)
+                {
+                    playerScript.PlayerDie();
+                }
             }
 
             yield return new WaitForSeconds(slamInterval * 0.5f);
         }
+
+        isInPattern = false;
     }
 
     IEnumerator Pattern_EnergyWave()
@@ -364,14 +469,19 @@ public class Stage3Boss : MonoBehaviour
         isInPattern = true;
         rb.velocity = Vector2.zero;
 
+        Debug.Log("패턴: 에너지 웨이브");
+
         float groundY = transform.position.y - 1.5f;
+        int maxWaves = 10;
         int direction = (player.position.x > transform.position.x) ? 1 : -1;
 
-        for (int i = 1; i <= 10; i++)
+        for (int i = 1; i <= maxWaves; i++)
         {
             Vector2 spawnPos = new Vector2(transform.position.x + i * waveSpacing * direction, groundY);
+
             GameObject wave = Instantiate(energyWavePrefab, spawnPos, Quaternion.identity);
             Destroy(wave, 1f);
+
             yield return new WaitForSeconds(waveInterval);
         }
 
@@ -383,7 +493,8 @@ public class Stage3Boss : MonoBehaviour
     {
         isInPattern = true;
         rb.velocity = Vector2.zero;
-        rb.gravityScale = 0f;
+
+        Debug.Log("패턴: 연속 돌진");
 
         for (int i = 0; i < rushTimes; i++)
         {
@@ -391,118 +502,82 @@ public class Stage3Boss : MonoBehaviour
             Vector2 playerPos = player.position;
             Vector2 direction = (playerPos - (Vector2)transform.position).normalized;
 
-            // 최대 돌진 거리 제한
-            float maxRushDistance = 18f;
-
-            // 최대 거리로 제한된 위치로 계산
-            Vector2 targetPosition = (Vector2)transform.position + (direction * maxRushDistance);
-            if(targetPosition.y < groundLevel)
-            {
-                targetPosition = new Vector2(targetPosition.x, groundLevel);
-            }
+            // 플레이어를 넘어서 가는 추가 거리 포함
+            Vector2 targetPosition = playerPos + (direction * rushOvershootDistance);
 
             // 돌진 경로 표시
             yield return StartCoroutine(ShowRushPath(targetPosition, false));
 
             // 돌진 실행
-            yield return StartCoroutine(ExecuteRushToTarget(targetPosition, false));
+            yield return StartCoroutine(ExecuteRush(targetPosition, false));
+
+            // 공중에 있다면 하강
+            if (IsInAir())
+            {
+                yield return StartCoroutine(DescendAfterRush(false));
+            }
 
             yield return new WaitForSeconds(rushCooldown);
         }
 
-        // 모든 돌진이 끝난 후, 자연스럽게 하강
-        yield return StartCoroutine(SmoothDescentToGround());
-
-        rb.gravityScale = 1f;
-
         isInPattern = false;
-    }
-
-    // 부드러운 하강 코루틴
-    IEnumerator SmoothDescentToGround()
-    {
-        float descentDuration = 1.0f; // 하강에 걸리는 시간
-        float elapsed = 0f;
-
-        // 시작 위치 저장
-        Vector2 startPosition = transform.position;
-
-        // 목표 위치 계산 (같은 x값, 지면 높이)
-        Vector2 targetPosition = new Vector2(transform.position.x, groundLevel);
-
-        Debug.Log($"부드러운 하강 시작: {startPosition.y:F2} → {groundLevel:F2}");
-
-        while (elapsed < descentDuration && transform.position.y > groundLevel + 0.1f)
-        {
-            elapsed += Time.deltaTime;
-
-            // 서서히 아래로 이동 (선형 보간)
-            float t = elapsed / descentDuration;
-            Vector2 newPosition = Vector2.Lerp(startPosition, targetPosition, t);
-
-            // y축만 부드럽게 이동 (x축은 고정)
-            transform.position = new Vector2(transform.position.x, newPosition.y);
-
-            yield return null;
-        }
-
-        // 최종 위치 보정
-        Vector3 finalPos = transform.position;
-        transform.position = finalPos;
-
-        Debug.Log($"하강 완료: 최종 위치 {transform.position}");
+        Debug.Log("연속 돌진 패턴 종료");
     }
 
     // ----------------------------------------------------------
-    //              돌진 경로 표시 (라인 마커 생성)
+    //              돌진 경로 표시
     // ----------------------------------------------------------
     IEnumerator ShowRushPath(Vector2 targetPosition, bool isRageMode)
     {
+        float warningTime = isRageMode ? rageRushWarningTime : rushWarningTime;
         Color pathColor = isRageMode ? rageRushPathColor : rushPathColor;
 
-        // 경로 라인 생
-        rushPathIndicator = new GameObject("RushPathLine");
+        // 돌진 경로 오브젝트 생성
+        rushPathIndicator = new GameObject("RushPathIndicator");
         rushPathIndicator.transform.position = transform.position;
         RegisterEffect(rushPathIndicator);
 
         SpriteRenderer pathRenderer = rushPathIndicator.AddComponent<SpriteRenderer>();
         pathRenderer.sprite = lineSprite;
         pathRenderer.color = pathColor;
-        pathRenderer.sortingOrder = 10;
+        pathRenderer.sortingOrder = -3;
 
-        // 경로 방향과 길이 계산
+        // 경로 방향 계산
         Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
         float distance = Vector2.Distance(transform.position, targetPosition);
 
-        // 경로 설정 (방향과 길이 조정)
+        // 경로 설정
         rushPathIndicator.transform.right = direction;
-        rushPathIndicator.transform.localScale = new Vector3(distance, rushPathWidth, 1f);
+        rushPathIndicator.transform.localScale = new Vector3(distance / 128f, rushPathWidth, 1f);
 
         // 경로 위치를 시작점과 끝점 사이의 중간으로 설정
         Vector2 midpoint = ((Vector2)transform.position + targetPosition) / 2f;
         rushPathIndicator.transform.position = midpoint;
 
-        // 점멸 애니메이션
+        // 펄스 애니메이션
         float elapsed = 0f;
-        float pulseSpeed = 4f;
+        float pulseSpeed = 5f;
 
-        while (elapsed < rushWarningTime && rushPathIndicator != null)
+        while (elapsed < warningTime && rushPathIndicator != null)
         {
             elapsed += Time.deltaTime;
 
-            // 점멸 효과
-            float alpha = 0.3f + (Mathf.Sin(elapsed * pulseSpeed * 2f) * 0.3f + 0.4f);
+            // 펄스 효과 (점멸)
+            float alpha = 0.4f + Mathf.Sin(elapsed * pulseSpeed) * 0.3f;
             pathRenderer.color = new Color(pathColor.r, pathColor.g, pathColor.b, alpha);
+
+            // 살짝 확대/축소 효과
+            float pulseScale = 1f + Mathf.Sin(elapsed * pulseSpeed * 2f) * 0.1f;
+            rushPathIndicator.transform.localScale = new Vector3(
+                distance / 128f * pulseScale,
+                rushPathWidth * pulseScale,
+                1f
+            );
 
             yield return null;
         }
 
         // 경로 표시 제거
-        ClearRushPathIndicators();
-    }
-
-    void ClearRushPathIndicators()
-    {
         if (rushPathIndicator != null)
         {
             UnregisterEffect(rushPathIndicator);
@@ -512,50 +587,53 @@ public class Stage3Boss : MonoBehaviour
     }
 
     // ----------------------------------------------------------
-    //              목표 지점까지 직선 돌진
+    //              돌진 실행
     // ----------------------------------------------------------
-    IEnumerator ExecuteRushToTarget(Vector2 targetPosition, bool isRageMode)
+    IEnumerator ExecuteRush(Vector2 targetPosition, bool isRageMode)
     {
         Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
+        rushDirection = direction; // 돌진 방향 저장
+        float timer = 0;
 
-        float currentRushSpeed = rushSpeed;
-        float arrivalThreshold = 0.5f; // 도착 판정 임계값
-        float maxRushTime = 1.0f; // 최대 돌진 시간 (1초)
+        float currentRushSpeed = isRageMode ? rageRushSpeed : rushSpeed;
+        float currentRushDuration = isRageMode ? rageRushDuration : rushDuration;
 
         // 돌진 시작
         isRushing = true;
-        Debug.Log($"돌진 시작 - 목표: {targetPosition}, 속도: {currentRushSpeed}");
+        Debug.Log($"돌진 시작 - 목표: {targetPosition}, 방향: {direction}, 속도: {currentRushSpeed}, 지속시간: {currentRushDuration}");
 
-        // 돌진 이펙트
-        GameObject rushEffect = CreateRushTrailEffect(isRageMode);
+        // 돌진 중에 보스 주변에 이펙트 생성
+        GameObject rushTrailEffect = CreateRushTrailEffect(isRageMode);
 
-        float rushTimer = 0f;
-
-        // 목표 지점에 도달할 때까지 직선 이동 (최대 1초)
-        while (Vector2.Distance(transform.position, targetPosition) > arrivalThreshold && rushTimer < maxRushTime)
+        while (timer < currentRushDuration)
         {
-            rushTimer += Time.deltaTime;
-            rb.velocity = direction * currentRushSpeed;
+            timer += Time.deltaTime;
 
-            // 이펙트 위치 업데이트
-            if (rushEffect != null)
+            // 목표 위치를 향해 직선으로 이동
+            Vector2 currentDirection = (targetPosition - (Vector2)transform.position).normalized;
+            rb.velocity = currentDirection * currentRushSpeed;
+
+            // 돌진 이펙트 업데이트
+            if (rushTrailEffect != null)
             {
-                rushEffect.transform.position = transform.position;
+                rushTrailEffect.transform.position = transform.position;
             }
 
             yield return null;
         }
 
-        // 목표 지점 도착 또는 시간 초과
-        rb.velocity = Vector2.zero;
+        // 돌진 종료
         isRushing = false;
+        rb.velocity = Vector2.zero;
 
-        // 이펙트 정리
-        if (rushEffect != null)
+        // 돌진 이펙트 정리
+        if (rushTrailEffect != null)
         {
-            UnregisterEffect(rushEffect);
-            Destroy(rushEffect);
+            UnregisterEffect(rushTrailEffect);
+            Destroy(rushTrailEffect);
         }
+
+        Debug.Log($"돌진 종료 - 현재 위치: {transform.position}");
     }
 
     GameObject CreateRushTrailEffect(bool isRageMode)
@@ -567,9 +645,9 @@ public class Stage3Boss : MonoBehaviour
         SpriteRenderer trailRenderer = trail.AddComponent<SpriteRenderer>();
         trailRenderer.sprite = circleSprite;
         trailRenderer.color = isRageMode ?
-            new Color(1f, 0f, 1f, 0.4f) :
-            new Color(1f, 0.2f, 0.2f, 0.4f);
-        trailRenderer.sortingOrder = 9;
+            new Color(1f, 0f, 1f, 0.3f) :
+            new Color(1f, 0.2f, 0.2f, 0.3f);
+        trailRenderer.sortingOrder = -2;
 
         Coroutine trailRoutine = StartCoroutine(RushTrailAnimation(trail, isRageMode));
         activeCoroutines.Add(trailRoutine);
@@ -579,19 +657,22 @@ public class Stage3Boss : MonoBehaviour
 
     IEnumerator RushTrailAnimation(GameObject trail, bool isRageMode)
     {
-        float duration = 1.0f;
+        float duration = 0.5f;
         float elapsed = 0f;
 
         while (elapsed < duration && trail != null)
         {
             elapsed += Time.deltaTime;
-            float scale = 2f + elapsed * 3f;
+
+            // 점점 커지면서 사라짐
+            float scale = 2f + elapsed * 4f;
             trail.transform.localScale = new Vector3(scale, scale, 1f);
 
+            // 페이드 아웃
             SpriteRenderer renderer = trail.GetComponent<SpriteRenderer>();
             if (renderer != null)
             {
-                float alpha = Mathf.Lerp(0.4f, 0f, elapsed / duration);
+                float alpha = Mathf.Lerp(0.3f, 0f, elapsed / duration);
                 renderer.color = isRageMode ?
                     new Color(1f, 0f, 1f, alpha) :
                     new Color(1f, 0.2f, 0.2f, alpha);
@@ -608,204 +689,89 @@ public class Stage3Boss : MonoBehaviour
     }
 
     // ----------------------------------------------------------
-    //              분노 패턴들
+    //              공중 체크
     // ----------------------------------------------------------
-
-    IEnumerator Pattern_Slam_Rage()
+    bool IsInAir()
     {
-        rb.velocity = Vector2.zero;
-
-        for (int i = 0; i < slamCount; i++)
-        {
-            CreateSlamEffect(transform.position, slamRadius * (1f + 0.3f * (i + 1)), rageSlamColor, true);
-            yield return new WaitForSeconds(slamInterval * 0.3f);
-
-            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, slamRadius * (1f + 0.3f * (i + 1)), LayerMask.GetMask("Player"));
-            foreach (Collider2D hit in hits)
-            {
-                LaserShooter playerScript = hit.GetComponent<LaserShooter>();
-                if (playerScript != null) playerScript.PlayerDie();
-            }
-
-            Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(cameraShakeIntensity * 1.5f, cameraShakeDuration));
-            activeCoroutines.Add(shakeRoutine);
-            yield return new WaitForSeconds(slamInterval * 0.7f);
-        }
+        // 간단한 방법: 일정 높이 이상인지 체크
+        // 실제 게임에서는 레이캐스트로 지면과의 거리를 체크하는 것이 좋음
+        float groundLevel = -3f; // 기본 지면 높이 (게임에 맞게 조정 필요)
+        return transform.position.y > groundLevel + 0.5f;
     }
 
-    IEnumerator Pattern_EnergyWave_Rage()
+    // ----------------------------------------------------------
+    //              돌진 후 하강 코루틴
+    // ----------------------------------------------------------
+    IEnumerator DescendAfterRush(bool isRageMode)
     {
-        isInPattern = true;
-        rb.velocity = Vector2.zero;
+        isDescending = true;
 
-        float groundY = transform.position.y - 1f;
+        // 하강 속도와 높이 설정
+        float currentDescentSpeed = isRageMode ? rageDescentSpeed : descentSpeed;
+        float groundLevel = -3f; // 게임의 지면 높이
 
-        for (int i = 1; i <= rageWaveCount; i++)
+        Debug.Log($"하강 시작 - 현재 높이: {transform.position.y}, 목표 높이: {groundLevel}, 속도: {currentDescentSpeed}");
+
+        // 하강 애니메이션 (이펙트)
+        CreateDescentEffect(isRageMode);
+
+        // 하강
+        while (transform.position.y > groundLevel + 0.1f)
         {
-            Vector2 rightPos = new Vector2(transform.position.x + i * rageWaveSpacing, groundY);
-            GameObject rightWave = Instantiate(energyWavePrefab, rightPos, Quaternion.identity);
-            rightWave.transform.localScale *= 1.5f;
-
-            Vector2 leftPos = new Vector2(transform.position.x - i * rageWaveSpacing, groundY);
-            GameObject leftWave = Instantiate(energyWavePrefab, leftPos, Quaternion.identity);
-            leftWave.transform.localScale *= 1.5f;
-
-            SpriteRenderer rightRenderer = rightWave.GetComponent<SpriteRenderer>();
-            SpriteRenderer leftRenderer = leftWave.GetComponent<SpriteRenderer>();
-            if (rightRenderer != null) rightRenderer.color = rageSlamColor;
-            if (leftRenderer != null) leftRenderer.color = rageSlamColor;
-
-            Destroy(rightWave, 1f);
-            Destroy(leftWave, 1f);
-            yield return new WaitForSeconds(rageWaveInterval);
+            // 아래로 하강 (중력 적용)
+            Vector2 velocity = rb.velocity;
+            velocity.y = -currentDescentSpeed;
+            velocity.x *= 0.8f; // 수평 이동 감속
+            rb.velocity = velocity;
+            yield return null;
         }
 
-        yield return new WaitForSeconds(0.3f);
-        isInPattern = false;
-    }
-
-    IEnumerator Pattern_Rush_Rage()
-    {
-        isInPattern = true;
-        rb.velocity = Vector2.zero;
-        rb.gravityScale = 0f; // 돌진 중에는 중력 비활성화
-
-        for (int i = 0; i < rushTimes * 2; i++)
-        {
-            // 플레이어를 넘어서까지 가기 위해 목표 위치 계산
-            Vector2 playerPos = player.position;
-            Vector2 direction = (playerPos - (Vector2)transform.position).normalized;
-
-            // 최대 돌진 거리 제한
-            float maxRageRushDistance = 20f; // 분노 모드는 더 길게
-
-            // 최대 거리로 제한된 위치로 재계산
-            Vector2 targetPosition = (Vector2)transform.position + (direction * maxRageRushDistance);
-            if (targetPosition.y < groundLevel)
-            {
-                targetPosition = new Vector2(targetPosition.x, groundLevel);
-            }
-
-            // 돌진 경로 표시
-            yield return StartCoroutine(ShowRushPath(targetPosition, true));
-
-            // 돌진 실행
-            yield return StartCoroutine(ExecuteRushToTarget(targetPosition, true));
-
-            yield return new WaitForSeconds(rageRushCooldown);
-        }
-
-        // 모든 돌진이 끝난 후, 자연스럽게 하강
-        yield return StartCoroutine(SmoothDescentToGround());
-
-        rb.gravityScale = 1f; // 중력 복원
-
-        isInPattern = false;
-    }
-
-    IEnumerator Pattern_Laser()
-    {
-        isInPattern = true;
+        // 하강 종료
         rb.velocity = Vector2.zero;
 
-        Debug.Log(isRage ? "패턴: 분노 레이저 발사!" : "패턴: 레이저 발사!");
+        // 착지 이펙트
+        CreateLandingEffect(isRageMode);
 
-        // 레이저 패턴 준비 시간
-        yield return new WaitForSeconds(laserWarmingTime);
+        yield return new WaitForSeconds(0.2f);
+        isDescending = false;
 
-        for (int i = 0; i < laserCount; i++)
-        {
-            // 플레이어 방향 계산
-            Vector2 playerPos = player.position;
-            Vector2 direction = (playerPos - (Vector2)transform.position).normalized;
-
-            // 레이저 생성
-            GameObject laser = Instantiate(laserPrefab, transform.position, Quaternion.identity);
-
-            // 레이저 각도 설정 (플레이어 방향으로)
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            laser.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-
-            // 레이저 속성 설정
-            LaserProjectile laserScript = laser.GetComponent<LaserProjectile>();
-            if (laserScript != null)
-            {
-                laserScript.SetDirection(direction);
-                laserScript.SetSpeed(laserSpeed);
-                laserScript.SetColor(Color.red);
-                laserScript.SetDuration(laserDuration);
-            }
-            else
-            {
-                // LaserProjectile 컴포넌트가 없다면 Rigidbody2D로 직접 이동
-                Rigidbody2D laserRb = laser.GetComponent<Rigidbody2D>();
-                if (laserRb != null)
-                {
-                    laserRb.velocity = direction * laserSpeed;
-                }
-
-                // 일정 시간 후 파괴
-                Destroy(laser, laserDuration);
-            }
-
-            // 레이저 생성 효과
-            CreateLaserSpawnEffect(transform.position, direction, isRage);
-
-            // 다음 레이저 발사까지 대기
-            yield return new WaitForSeconds(laserInterval);
-        }
-
-        yield return new WaitForSeconds(0.5f); // 마지막 레이저 발사 후 추가 대기
-        isInPattern = false;
+        Debug.Log($"하강 완료 - 최종 위치: {transform.position}");
     }
 
-    void CreateLaserSpawnEffect(Vector2 position, Vector2 direction, bool isRageMode)
+    void CreateDescentEffect(bool isRageMode)
     {
-        GameObject effect = new GameObject("LaserSpawnEffect");
-        effect.transform.position = position;
-        RegisterEffect(effect);
+        GameObject descentEffect = new GameObject("DescentEffect");
+        descentEffect.transform.position = transform.position;
+        RegisterEffect(descentEffect);
 
-        SpriteRenderer renderer = effect.AddComponent<SpriteRenderer>();
+        SpriteRenderer renderer = descentEffect.AddComponent<SpriteRenderer>();
         renderer.sprite = circleSprite;
-        renderer.color = Color.red;
-        renderer.sortingOrder = 12;
+        renderer.color = isRageMode ? new Color(1f, 0.2f, 0.8f, 0.4f) : new Color(1f, 0.5f, 0.2f, 0.4f);
+        renderer.sortingOrder = -2;
 
-        // 레이저 방향에 맞게 회전
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        effect.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-
-        // 원형에서 타원형으로 변환 (레이저 방향으로 길게)
-        effect.transform.localScale = new Vector3(0.2f, 1f, 1f);
-
-        Coroutine effectRoutine = StartCoroutine(LaserSpawnEffectAnimation(effect, isRageMode));
+        Coroutine effectRoutine = StartCoroutine(DescentEffectAnimation(descentEffect, isRageMode));
         activeCoroutines.Add(effectRoutine);
     }
 
-    IEnumerator LaserSpawnEffectAnimation(GameObject effect, bool isRageMode)
+    IEnumerator DescentEffectAnimation(GameObject effect, bool isRageMode)
     {
-        float duration = 0.3f;
+        float duration = 0.8f;
         float elapsed = 0f;
-        SpriteRenderer renderer = effect.GetComponent<SpriteRenderer>();
 
-        Vector3 originalScale = effect.transform.localScale;
-        Color originalColor = renderer.color;
-
-        while (elapsed < duration)
+        while (elapsed < duration && effect != null)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / duration;
 
-            // 점점 커지면서 사라짐
-            float scaleX = Mathf.Lerp(originalScale.x, originalScale.x * 3f, t);
-            float scaleY = Mathf.Lerp(originalScale.y, originalScale.y * 0.5f, t);
-            effect.transform.localScale = new Vector3(scaleX, scaleY, 1f);
-
-            // 레이저 방향으로 이동
-            effect.transform.position += (Vector3)effect.transform.right * Time.deltaTime * 5f;
+            // 보스를 따라다니며 점점 커지기
+            effect.transform.position = transform.position;
+            float scale = 3f + elapsed * 3f;
+            effect.transform.localScale = new Vector3(scale, scale * 0.5f, 1f);
 
             // 페이드 아웃
-            float alpha = Mathf.Lerp(originalColor.a, 0f, t);
-            renderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            SpriteRenderer renderer = effect.GetComponent<SpriteRenderer>();
+            float alpha = Mathf.Lerp(0.4f, 0f, elapsed / duration);
+            Color color = isRageMode ? new Color(1f, 0.2f, 0.8f, alpha) : new Color(1f, 0.5f, 0.2f, alpha);
+            renderer.color = color;
 
             yield return null;
         }
@@ -817,14 +783,169 @@ public class Stage3Boss : MonoBehaviour
         }
     }
 
+    void CreateLandingEffect(bool isRageMode)
+    {
+        // 착지 충격파 이펙트
+        CreateShockwave(transform.position, isRageMode);
+
+        // 카메라 흔들기
+        float shakeIntensity = isRageMode ? cameraShakeIntensity * 0.7f : cameraShakeIntensity * 0.5f;
+        Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(shakeIntensity, 0.5f));
+        activeCoroutines.Add(shakeRoutine);
+    }
+
+    // ----------------------------------------------------------
+    //              분노 패턴들 (강화된 패턴)
+    // ----------------------------------------------------------
+
+    IEnumerator Pattern_Slam_Rage()
+    {
+        isInPattern = true;
+        rb.velocity = Vector2.zero;
+
+        Debug.Log("패턴: 분노 손바닥 찍기!");
+
+        for (int i = 0; i < rageSlamCount; i++)
+        {
+            // 분노 손바닥 이펙트 (더 크고 강렬한 효과)
+            CreateSlamEffect(transform.position, rageSlamRadius, rageSlamColor, true);
+
+            yield return new WaitForSeconds(rageSlamInterval * 0.3f);
+
+            // 더 넓은 범위 공격
+            Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, rageSlamRadius, LayerMask.GetMask("Player"));
+            foreach (Collider2D hit in hits)
+            {
+                LaserShooter playerScript = hit.GetComponent<LaserShooter>();
+                if (playerScript != null)
+                {
+                    playerScript.PlayerDie();
+                }
+            }
+
+            // 카메라 흔들기
+            Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(cameraShakeIntensity * 1.5f, cameraShakeDuration));
+            activeCoroutines.Add(shakeRoutine);
+
+            yield return new WaitForSeconds(rageSlamInterval * 0.7f);
+        }
+
+        isInPattern = false;
+    }
+
+    IEnumerator Pattern_EnergyWave_Rage()
+    {
+        isInPattern = true;
+        rb.velocity = Vector2.zero;
+
+        Debug.Log("패턴: 분노 에너지 웨이브!");
+
+        float groundY = transform.position.y - 1.5f;
+
+        // 양쪽으로 동시에 웨이브 발사
+        for (int i = 1; i <= rageWaveCount; i++)
+        {
+            // 오른쪽 웨이브
+            Vector2 rightPos = new Vector2(transform.position.x + i * rageWaveSpacing, groundY);
+            GameObject rightWave = Instantiate(energyWavePrefab, rightPos, Quaternion.identity);
+
+            // 왼쪽 웨이브
+            Vector2 leftPos = new Vector2(transform.position.x - i * rageWaveSpacing, groundY);
+            GameObject leftWave = Instantiate(energyWavePrefab, leftPos, Quaternion.identity);
+
+            // 분노 웨이브는 색상 변경
+            SpriteRenderer rightRenderer = rightWave.GetComponent<SpriteRenderer>();
+            SpriteRenderer leftRenderer = leftWave.GetComponent<SpriteRenderer>();
+            if (rightRenderer != null) rightRenderer.color = rageSlamColor;
+            if (leftRenderer != null) leftRenderer.color = rageSlamColor;
+
+            Destroy(rightWave, 1f);
+            Destroy(leftWave, 1f);
+
+            yield return new WaitForSeconds(rageWaveInterval);
+        }
+
+        yield return new WaitForSeconds(0.3f);
+        isInPattern = false;
+    }
+
+    IEnumerator Pattern_Rush_Rage()
+    {
+        isInPattern = true;
+        rb.velocity = Vector2.zero;
+
+        Debug.Log("패턴: 분노 돌진!");
+
+        for (int i = 0; i < rageRushTimes; i++)
+        {
+            // 플레이어를 더 많이 넘어서 가기 위해 목표 위치 계산
+            Vector2 playerPos = player.position;
+            Vector2 direction = (playerPos - (Vector2)transform.position).normalized;
+
+            // 플레이어를 더 많이 넘어서 가는 추가 거리 포함
+            Vector2 targetPosition = playerPos + (direction * rageRushOvershootDistance);
+
+            // 돌진 경로 표시 (더 짧은 경고 시간)
+            yield return StartCoroutine(ShowRushPath(targetPosition, true));
+
+            // 돌진 실행
+            yield return StartCoroutine(ExecuteRush(targetPosition, true));
+
+            // 공중에 있다면 하강
+            if (IsInAir())
+            {
+                yield return StartCoroutine(DescendAfterRush(true));
+            }
+
+            yield return new WaitForSeconds(rageRushCooldown);
+        }
+
+        isInPattern = false;
+        Debug.Log("분노 돌진 패턴 종료");
+    }
+
+    IEnumerator Pattern_Laser()
+    {
+        isInPattern = true;
+        rb.velocity = Vector2.zero;
+
+        Debug.Log(isRage ? "패턴: 분노 레이저!" : "패턴: 전면 레이저");
+
+        yield return new WaitForSeconds(0.8f);
+
+        laserBeam.SetActive(true);
+
+        if (isRage)
+        {
+            // 분노 레이저는 더 오래 지속
+            yield return new WaitForSeconds(4f);
+        }
+        else
+        {
+            yield return new WaitForSeconds(3f);
+        }
+
+        laserBeam.SetActive(false);
+
+        isInPattern = false;
+    }
+
     IEnumerator Pattern_ComboAttack()
     {
         isInPattern = true;
         rb.velocity = Vector2.zero;
 
+        Debug.Log("패턴: 연속 콤보 공격!");
+
+        // 1. 손바닥 찍기
         yield return StartCoroutine(Pattern_Slam_Rage());
+
+        // 2. 빠른 돌진
         yield return StartCoroutine(Pattern_Rush_Rage());
+
+        // 3. 에너지 웨이브
         yield return StartCoroutine(Pattern_EnergyWave_Rage());
+
         isInPattern = false;
     }
 
@@ -835,6 +956,7 @@ public class Stage3Boss : MonoBehaviour
     {
         if (player == null) return;
 
+        // 플레이어와의 거리 계산
         float distance = Vector2.Distance(transform.position, player.position);
 
         if (distance <= rushDamageRadius)
@@ -849,11 +971,12 @@ public class Stage3Boss : MonoBehaviour
     }
 
     // ----------------------------------------------------------
-    //              시각 효과
+    //              시각 효과 생성 메서드 (코드로 생성)
     // ----------------------------------------------------------
 
     void CreateSlamEffect(Vector2 position, float radius, Color effectColor, bool isRageEffect)
     {
+        // 기본 손바닥 이펙트
         GameObject effect = new GameObject("SlamEffect");
         effect.transform.position = position;
         RegisterEffect(effect);
@@ -863,14 +986,31 @@ public class Stage3Boss : MonoBehaviour
         renderer.color = effectColor;
         renderer.sortingOrder = 10;
 
-        float baseSize = radius * 2f;
-        effect.transform.localScale = new Vector3(baseSize, baseSize, 1f);
-        if (isRageEffect) effect.transform.localScale *= 1.5f;
+        // 머티리얼 설정 (캐시 사용)
+        Material material = GetOrCreateMaterial("Sprites/Default", effectColor);
+        if (material != null)
+        {
+            renderer.material = material;
+        }
 
+        // 크기 설정 (반지름에 맞춤)
+        float baseSize = radius * 2f; // 128은 스프라이트 픽셀 단위
+        effect.transform.localScale = new Vector3(baseSize, baseSize, 1f);
+
+        // 분노 모드면 더 크게
+        if (isRageEffect)
+        {
+            effect.transform.localScale *= 1.5f;
+        }
+
+        // 페이드 아웃 애니메이션
         Coroutine animationRoutine = StartCoroutine(SlamEffectAnimation(effect, isRageEffect ? rageSlamEffectDuration : slamEffectDuration));
         activeCoroutines.Add(animationRoutine);
 
+        // 충격파 이펙트
         CreateShockwave(position, isRageEffect);
+
+        // 카메라 흔들기
         Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(
             isRageEffect ? cameraShakeIntensity * 1.5f : cameraShakeIntensity,
             cameraShakeDuration
@@ -882,18 +1022,24 @@ public class Stage3Boss : MonoBehaviour
     {
         SpriteRenderer renderer = effect.GetComponent<SpriteRenderer>();
         Transform effectTransform = effect.transform;
+
+        float elapsed = 0f;
         Vector3 originalScale = effectTransform.localScale;
         Color originalColor = renderer.color;
 
-        float elapsed = 0f;
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
+
+            // 페이드 아웃
             float alpha = Mathf.Lerp(1f, 0f, t);
             renderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+
+            // 살짝 커졌다 작아지는 효과
             float pulse = Mathf.Sin(t * Mathf.PI * 2f) * 0.1f + 1f;
             effectTransform.localScale = originalScale * pulse;
+
             yield return null;
         }
 
@@ -912,9 +1058,10 @@ public class Stage3Boss : MonoBehaviour
 
         SpriteRenderer renderer = shockwave.AddComponent<SpriteRenderer>();
         renderer.sprite = circleSprite;
-        renderer.color = new Color(1f, 1f, 1f, 0.5f);
+        renderer.color = new Color(1f, 1f, 1f, 0.5f); // 흰색 반투명
         renderer.sortingOrder = 9;
 
+        // 충격파 애니메이션
         Coroutine animationRoutine = StartCoroutine(ShockwaveAnimation(shockwave, isRageEffect));
         activeCoroutines.Add(animationRoutine);
     }
@@ -925,16 +1072,23 @@ public class Stage3Boss : MonoBehaviour
         Transform shockwaveTransform = shockwave.transform;
 
         float elapsed = 0f;
+        float duration = shockwaveDuration;
+        float startSize = 0.5f;
         float endSize = isRageEffect ? 4f : 3f;
 
-        while (elapsed < shockwaveDuration)
+        while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / shockwaveDuration;
-            float currentSize = Mathf.Lerp(0.5f, endSize, t);
+            float t = elapsed / duration;
+
+            // 크기 증가
+            float currentSize = Mathf.Lerp(startSize, endSize, t);
             shockwaveTransform.localScale = new Vector3(currentSize, currentSize, 1f);
+
+            // 페이드 아웃
             float alpha = Mathf.Lerp(0.5f, 0f, t);
             renderer.color = new Color(1f, 1f, 1f, alpha);
+
             yield return null;
         }
 
@@ -946,32 +1100,45 @@ public class Stage3Boss : MonoBehaviour
     }
 
     // ----------------------------------------------------------
-    //              카메라 흔들기
+    //              카메라 흔들기 효과
     // ----------------------------------------------------------
+
+    // Cinemachine 카메라 흔들림
     IEnumerator ShakeCinemachineCamera(float duration, float intensity)
     {
         if (virtualCamera == null) yield break;
 
+        // Cinemachine Noise 컴포넌트 가져오기
         CinemachineBasicMultiChannelPerlin noise = virtualCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
+
         if (noise == null) yield break;
 
+        // 기존 설정 저장
         float originalAmplitude = noise.m_AmplitudeGain;
         float originalFrequency = noise.m_FrequencyGain;
 
+        // 흔들림 시작
         noise.m_AmplitudeGain = intensity;
-        noise.m_FrequencyGain = intensity * 2f;
+        noise.m_FrequencyGain = intensity * 2f; // 진동 빈도
 
         float elapsed = 0f;
+
+        // 점점 약해지는 흔들림
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
+
+            // 시간에 따라 흔들림 강도 감소
             float t = elapsed / duration;
             float currentIntensity = Mathf.Lerp(intensity, 0f, t);
+
             noise.m_AmplitudeGain = currentIntensity;
             noise.m_FrequencyGain = currentIntensity * 2f;
+
             yield return null;
         }
 
+        // 원래 설정으로 복원
         noise.m_AmplitudeGain = originalAmplitude;
         noise.m_FrequencyGain = originalFrequency;
     }
@@ -983,13 +1150,20 @@ public class Stage3Boss : MonoBehaviour
     {
         currentHP -= damage;
 
+        // 피격 효과 (빨간색으로 변했다가 복원)
         Coroutine flashRoutine = StartCoroutine(FlashRed());
         activeCoroutines.Add(flashRoutine);
+
+        // 피격 이펙트
         CreateHitEffect();
 
-        if (currentHP <= 0) Die();
+        if (currentHP <= 0)
+        {
+            Die();
+        }
     }
 
+    // Stage1Boss의 FlashRed 효과 적용
     IEnumerator FlashRed()
     {
         if (bossSpriteRenderer != null)
@@ -1010,6 +1184,7 @@ public class Stage3Boss : MonoBehaviour
         renderer.sprite = circleSprite;
         renderer.color = Color.white;
         renderer.sortingOrder = 11;
+
         hitEffect.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
 
         Coroutine animationRoutine = StartCoroutine(HitEffectAnimation(hitEffect));
@@ -1026,10 +1201,14 @@ public class Stage3Boss : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
+
+            // 빠르게 커지면서 사라짐
             float size = Mathf.Lerp(0.5f, 2f, t);
             effect.transform.localScale = new Vector3(size, size, 1f);
+
             float alpha = Mathf.Lerp(1f, 0f, t);
             renderer.color = new Color(1f, 1f, 1f, alpha);
+
             yield return null;
         }
 
@@ -1043,19 +1222,34 @@ public class Stage3Boss : MonoBehaviour
     void Die()
     {
         StopAllCoroutines();
-        foreach (var coroutine in activeCoroutines) if (coroutine != null) StopCoroutine(coroutine);
+
+        // 모든 활성 코루틴 정리
+        foreach (var coroutine in activeCoroutines)
+        {
+            if (coroutine != null)
+                StopCoroutine(coroutine);
+        }
         activeCoroutines.Clear();
 
         rb.velocity = Vector2.zero;
         isInPattern = true;
 
         Debug.Log("스테이지 3 보스 사망!");
+
+        // 죽음 이펙트
         CreateDeathEffect();
+
+        // 생성된 모든 이펙트 정리
         CleanupAllEffects();
+
+        // Material 캐시 정리
         ClearMaterialCache();
+
+        // Texture 풀 정리
         ClearTexturePool();
 
         Destroy(gameObject, 3f);
+
         portal.SetActive(true);
     }
 
@@ -1075,14 +1269,28 @@ public class Stage3Boss : MonoBehaviour
     {
         for (int i = 0; i < explosionCount; i++)
         {
+            // 랜덤 위치 계산
             Vector2 randomOffset = Random.insideUnitCircle * explosionRadius;
             Vector2 spawnPos = (Vector2)transform.position + randomOffset;
 
-            GameObject explosion = Instantiate(deathExplosionPrefab, spawnPos, Quaternion.identity);
-            if (Random.value > 0.5f) explosion.transform.Rotate(0f, 0f, Random.Range(0f, 360f));
+            // 프리팹 인스턴스 생성
+            GameObject explosion = Instantiate(
+                deathExplosionPrefab,
+                spawnPos,
+                Quaternion.identity
+            );
 
+            // 랜덤 회전 적용 (선택사항)
+            if (Random.value > 0.5f)
+            {
+                explosion.transform.Rotate(0f, 0f, Random.Range(0f, 360f));
+            }
+
+            // 랜덤 크기 적용 (선택사항)
             float randomScale = Random.Range(0.8f, 1.2f);
             explosion.transform.localScale = Vector3.one * randomScale;
+
+            // 생성된 이펙트를 자식으로 설정하여 관리
             explosion.transform.parent = transform;
 
             yield return new WaitForSeconds(explosionInterval);
@@ -1090,11 +1298,14 @@ public class Stage3Boss : MonoBehaviour
     }
 
     // ----------------------------------------------------------
-    //                 메모리 관리 메서드
+    //                 메모리 관리 메서드 (Stage1Boss에서 가져옴)
     // ----------------------------------------------------------
+
+    // Material 캐싱 및 재사용
     private Material GetOrCreateMaterial(string shaderName, Color color)
     {
         string key = $"{shaderName}_{color.GetHashCode()}";
+
         if (!materialCache.ContainsKey(key))
         {
             Shader shader = Shader.Find(shaderName);
@@ -1105,54 +1316,77 @@ public class Stage3Boss : MonoBehaviour
                 materialCache[key] = mat;
             }
         }
+
         return materialCache.ContainsKey(key) ? materialCache[key] : null;
     }
 
     private void ClearMaterialCache()
     {
-        foreach (var mat in materialCache.Values) if (mat != null) Destroy(mat);
+        foreach (var mat in materialCache.Values)
+        {
+            if (mat != null)
+                Destroy(mat);
+        }
         materialCache.Clear();
     }
 
+    // Texture2D 풀 관리
     private Texture2D GetTextureFromPool(int width, int height)
     {
+        // 풀에서 적절한 텍스처 찾기
         foreach (var texture in texturePool)
         {
             if (texture != null && texture.width == width && texture.height == height)
             {
+                // 풀에서 제거하고 반환
                 var list = new List<Texture2D>(texturePool);
                 list.Remove(texture);
                 texturePool = new Queue<Texture2D>(list);
                 return texture;
             }
         }
-        return new Texture2D(width, height);
+
+        // 풀에 없으면 새로 생성
+        Texture2D newTexture = new Texture2D(width, height);
+        return newTexture;
     }
 
     private void ClearTexturePool()
     {
-        foreach (var texture in texturePool) if (texture != null) Destroy(texture);
+        foreach (var texture in texturePool)
+        {
+            if (texture != null)
+                Destroy(texture);
+        }
         texturePool.Clear();
     }
 
+    // 이펙트 관리
     private void RegisterEffect(GameObject effect)
     {
-        if (effect != null && !activeEffects.Contains(effect)) activeEffects.Add(effect);
+        if (effect != null && !activeEffects.Contains(effect))
+            activeEffects.Add(effect);
     }
 
     private void UnregisterEffect(GameObject effect)
     {
-        if (effect != null) activeEffects.Remove(effect);
+        if (effect != null)
+            activeEffects.Remove(effect);
     }
 
     private void CleanupAllEffects()
     {
-        foreach (var effect in activeEffects) if (effect != null) Destroy(effect);
+        foreach (var effect in activeEffects)
+        {
+            if (effect != null)
+                Destroy(effect);
+        }
         activeEffects.Clear();
     }
 
     void OnDestroy()
     {
+        // 모든 리소스 정리
         StopAllCoroutines();
         CleanupAllEffects();
         ClearMaterialCache();
@@ -1160,13 +1394,17 @@ public class Stage3Boss : MonoBehaviour
     }
 
     // ----------------------------------------------------------
-    //              시각화용 Gizmos
+    //              시각화용 Gizmos (디버그 범위 표시)
     // ----------------------------------------------------------
+
     private void OnDrawGizmosSelected()
     {
         if (Application.isPlaying) return;
+
+        // 에디터에서 선택 시 기본 범위 표시
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, 4f);
+
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, rushDamageRadius);
     }
