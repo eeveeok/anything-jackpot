@@ -385,17 +385,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  anim: {fileID: 0}
-  laserBeam: {fileID: 0}
+  laserPrefab: {fileID: 4448616416284540678, guid: bf56e2b3a2a6a994cb9dd574b457d5a9, type: 3}
   energyWavePrefab: {fileID: 4995691333729197355, guid: 053bce0d661dfc74a8dc74870ccaa10b, type: 3}
+  portal: {fileID: 0}
   maxHP: 1000
   currentHP: 0
   followSpeed: 5
-  followStopDistance: 2
+  followStopDistance: 3
   idleDelay: 1.5
   slamCount: 3
-  slamInterval: 0.8
+  slamInterval: 1.2
+  slamRadius: 3
   waveInterval: 0.3
   waveSpacing: 1.5
-  rushTimes: 4
-  rushSpeed: 12
+  rushTimes: 3
+  rushSpeed: 50
+  rushCooldown: 0.2
+  rushWarningTime: 0.5
+  rushPathWidth: 5
+  groundLevel: 2.3
+  laserSpeed: 30
+  laserCount: 5
+  laserInterval: 0.3
+  laserWarmingTime: 0.8
+  laserDuration: 2
+  rageWaveCount: 15
+  rageWaveInterval: 0.15
+  rageWaveSpacing: 2
+  rageRushCooldown: 0.1
+  slamEffectDuration: 1.5
+  shockwaveDuration: 0.8
+  rageSlamEffectDuration: 2
+  rushDamageRadius: 3
+  canDealRushDamage: 1
+  virtualCamera: {fileID: 0}
+  cameraShakeIntensity: 20
+  cameraShakeDuration: 1.5
+  deathExplosionPrefab: {fileID: 2559277340021799047, guid: a41b05d67a8b91d40b89e1c61656b5b8, type: 3}
+  explosionCount: 10
+  explosionRadius: 3
+  explosionInterval: 0.1
