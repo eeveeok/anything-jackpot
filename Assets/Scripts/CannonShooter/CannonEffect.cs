@@ -1,13 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class CannonEffect : MonoBehaviour
 {
     [Header("이펙트 설정")]
     public Vector2 direction;
-    public float damage = 10f;
     public float range = 3f;
     public float width = 1f;
-    public float duration = 0.3f;
+    public float duration = 0.6f;
     public LayerMask damageLayers;
     public Transform origin;
 
@@ -23,53 +24,23 @@ public class CannonEffect : MonoBehaviour
 
     void Start()
     {
-        // LineRenderer 설정
-        if (lineRenderer != null)
+        if (origin == null)
         {
-            lineRenderer.positionCount = 2;
-            lineRenderer.startWidth = width;
-            lineRenderer.endWidth = width;
-            lineRenderer.colorGradient = colorGradient;
-
-            // 초기 위치 설정
-            lineRenderer.SetPosition(0, transform.position);
-            lineRenderer.SetPosition(1, transform.position + (Vector3)direction * range);
+            origin = transform;
         }
 
-        // 충격 입자 효과
-        if (impactParticles != null)
-        {
-            impactParticles.transform.position = transform.position + (Vector3)direction * range;
-            impactParticles.Play();
-        }
-
-        // 데미지 적용
-        ApplyDamage();
+        // 타일 파괴 로직 실행
+        BreakTilesAlongPath();
     }
 
     void Update()
     {
         timer += Time.deltaTime;
 
-        // 이펙트 애니메이션
-        if (lineRenderer != null)
+        // 디버그 시각화
+        if (debugVisualization && Application.isPlaying)
         {
-            float progress = timer / duration;
-
-            // 너비 변화
-            float currentWidth = width * widthCurve.Evaluate(progress);
-            lineRenderer.startWidth = currentWidth;
-            lineRenderer.endWidth = currentWidth * 0.5f;
-
-            // 알파값 감소
-            Gradient gradient = lineRenderer.colorGradient;
-            GradientAlphaKey[] alphaKeys = gradient.alphaKeys;
-            for (int i = 0; i < alphaKeys.Length; i++)
-            {
-                alphaKeys[i].alpha = Mathf.Lerp(1f, 0f, progress);
-            }
-            gradient.SetKeys(gradient.colorKeys, alphaKeys);
-            lineRenderer.colorGradient = gradient;
+            DrawDebugVisualization();
         }
 
         // 지속시간 종료 시 파괴
@@ -79,46 +50,22 @@ public class CannonEffect : MonoBehaviour
         }
     }
 
-    void ApplyDamage()
+    void BreakTilesAlongPath()
     {
         if (hasDamaged) return;
-        hasDamaged = true;
 
-        // 원뿔 형태의 충돌체 탐지
-        //float angle = 30f; // 30도 각도
+        // 1. 레이캐스트로 충돌점 찾기
+        RaycastHit2D hit = Physics2D.Raycast(
+            origin.position,
+            direction,
+            raycastDistance,
+            damageLayers
+        );
 
-        // 주변 적 탐지
-        //Collider2D[] colliders = Physics2D.OverlapCircleAll(origin.position, range * 1.5f, damageLayers);
-
-        //foreach (Collider2D collider in colliders)
-        //{
-        //    // 충돌체의 방향 계산
-        //    Vector2 targetDir = (collider.transform.position - origin.position).normalized;
-
-        //    // 발사 방향과의 각도 차이 계산
-        //    float angleDifference = Vector2.Angle(direction, targetDir);
-
-        //    // 각도 내에 있고 거리 내에 있는지 확인
-        //    float distance = Vector2.Distance(origin.position, collider.transform.position);
-
-        //    if (angleDifference <= angle && distance <= range)
-        //    {
-        //        // 보스 데미지 처리
-        //        Stage1Boss boss = collider.GetComponent<Stage1Boss>();
-        //        if (boss != null)
-        //        {
-        //            boss.ApplyDamage(damage);
-        //        }
-        //    }
-        //}
-    }
-
-    void OnDrawGizmos()
-    {
-        if (Application.isPlaying)
+        if (debugVisualization)
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawRay(transform.position, direction * range);
+            Debug.DrawRay(origin.position, direction * raycastDistance, Color.yellow, 1f);
+        }
 
         if (hit.collider != null)
         {
@@ -154,27 +101,101 @@ public class CannonEffect : MonoBehaviour
         }
     }
 
-    void DrawConeGizmo(Vector2 origin, Vector2 direction, float range, float angle)
+    void BreakTilesInRadius(Tilemap tilemap, Vector3Int centerCell)
     {
-        Vector2 leftBound = Quaternion.Euler(0, 0, angle) * direction * range;
-        Vector2 rightBound = Quaternion.Euler(0, 0, -angle) * direction * range;
+        if (!tileHealthMap.ContainsKey(tilemap))
+        {
+            tileHealthMap[tilemap] = new Dictionary<Vector3Int, int>();
+        }
 
-        Gizmos.DrawRay(origin, leftBound);
-        Gizmos.DrawRay(origin, rightBound);
+        Dictionary<Vector3Int, int> healthDict = tileHealthMap[tilemap];
 
-        // 호 그리기
-        int segments = 20;
-        float angleStep = angle * 2 / segments;
-        Vector2 prevPoint = origin + leftBound;
+        // 반경 내의 모든 셀 확인
+        int radius = Mathf.CeilToInt(tileBreakRadius);
+
+        for (int x = -radius; x <= radius; x++)
+        {
+            for (int y = -radius; y <= radius; y++)
+            {
+                Vector3Int cell = centerCell + new Vector3Int(x, y, 0);
+
+                // 원형 반경 체크
+                Vector3 cellWorldPos = tilemap.CellToWorld(cell) + tilemap.cellSize * 0.5f;
+                Vector3 centerWorldPos = tilemap.CellToWorld(centerCell) + tilemap.cellSize * 0.5f;
+                float distance = Vector2.Distance(cellWorldPos, centerWorldPos);
+
+                if (distance <= tileBreakRadius)
+                {
+                    // 해당 셀에 타일이 있는지 확인
+                    TileBase tile = tilemap.GetTile(cell);
+                    if (tile != null)
+                    {
+                        // 타일 체력 관리
+                        if (!healthDict.ContainsKey(cell))
+                        {
+                            healthDict[cell] = 1; // 기본 체력 1
+                        }
+
+                        // 데미지 적용
+                        healthDict[cell]--;
+
+                        // 체력이 0 이하이면 타일 제거
+                        if (healthDict[cell] <= 0)
+                        {
+                            tilemap.SetTile(cell, null);
+                            healthDict.Remove(cell);
+                            Debug.Log($"CannonEffect: Tile destroyed at cell: {cell}");
+                        }
+                        else
+                        {
+                            Debug.Log($"CannonEffect: Tile damaged at cell: {cell}, health: {healthDict[cell]}");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void DrawDebugVisualization()
+    {
+        // 레이캐스트 경로
+        Debug.DrawLine(origin.position, impactPoint, Color.yellow);
+
+        // 충돌점에 원 그리기
+        DebugDrawCircle(impactPoint, tileBreakRadius, 32, Color.red);
+
+        // 타일 파괴 범위 시각화
+        if (tileBreakRadius > 0)
+        {
+            DebugDrawCircle(impactPoint, tileBreakRadius, 32, new Color(1f, 0.5f, 0f, 0.5f));
+        }
+    }
+
+    void DebugDrawCircle(Vector2 center, float radius, int segments, Color color)
+    {
+        float angle = 0f;
+        float angleIncrement = 360f / segments;
+        Vector2 prevPoint = center + new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)) * radius;
 
         for (int i = 1; i <= segments; i++)
         {
-            float currentAngle = angle - i * angleStep;
-            Vector2 currentDir = Quaternion.Euler(0, 0, currentAngle) * direction;
-            Vector2 currentPoint = origin + currentDir * range;
-
-            Gizmos.DrawLine(prevPoint, currentPoint);
-            prevPoint = currentPoint;
+            angle += angleIncrement;
+            Vector2 nextPoint = center + new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)) * radius;
+            Debug.DrawLine(prevPoint, nextPoint, color);
+            prevPoint = nextPoint;
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (!debugVisualization || !Application.isPlaying) return;
+
+        // 타일 파괴 범위 시각화 (에디터에서도 보이게)
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.3f);
+        Gizmos.DrawWireSphere(impactPoint, tileBreakRadius);
+
+        // 방향 시각화
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(origin.position, direction * 2f);
     }
 }
