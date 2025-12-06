@@ -244,7 +244,7 @@ PositionConstraint:
   m_Enabled: 1
   m_Weight: 0.7
   m_TranslationAtRest: {x: 0, y: -75.38, z: 0}
-  m_TranslationOffset: {x: -18.25, y: -77.29668, z: 7.1428576}
+  m_TranslationOffset: {x: -18.249998, y: -77.29668, z: 7.1428566}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -58040,7 +58040,7 @@ PositionConstraint:
   m_Enabled: 1
   m_Weight: 0.7
   m_TranslationAtRest: {x: 32.97, y: -37.92, z: 0}
-  m_TranslationOffset: {x: 14.720001, y: -39.836678, z: 7.1428576}
+  m_TranslationOffset: {x: 14.720003, y: -39.836678, z: 7.1428566}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -65155,7 +65155,7 @@ PositionConstraint:
   m_Enabled: 1
   m_Weight: 0.7
   m_TranslationAtRest: {x: 0, y: -18.94, z: 0}
-  m_TranslationOffset: {x: -18.25, y: -20.856678, z: 7.1428576}
+  m_TranslationOffset: {x: -18.249998, y: -20.856678, z: 7.1428566}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -71656,6 +71656,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 282572956270578669, guid: 81b4655b118f7b14b882d75610607ee9, type: 3}
   m_PrefabInstance: {fileID: 1678838551}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &807007409
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 807007411}
+  - component: {fileID: 807007410}
+  m_Layer: 0
+  m_Name: PauseUILoader
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &807007410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 807007409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4632fbdb967d6b5478b30e5abd509da6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pauseUIPrefab: {fileID: 3962277511320330191, guid: 959ef47109d84714499c18a508fbe992, type: 3}
+--- !u!4 &807007411
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 807007409}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 245, y: 189.8, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 12
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &822959908
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -71839,6 +71884,51 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 81b4655b118f7b14b882d75610607ee9, type: 3}
+--- !u!1 &859819957
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 859819959}
+  - component: {fileID: 859819958}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &859819958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859819957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a63bff26b5a46547a6aa2ab0da92d71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dialogueUI: {fileID: 5840701262971301827, guid: ffc3a9210a76b7b4ba3016f490a67d30, type: 3}
+--- !u!4 &859819959
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859819957}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 430.99997, y: 192.6, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &903700844
 GameObject:
   m_ObjectHideFlags: 0
@@ -71883,7 +71973,7 @@ PositionConstraint:
   m_Enabled: 1
   m_Weight: 0.7
   m_TranslationAtRest: {x: 0, y: -56.4, z: 0}
-  m_TranslationOffset: {x: -18.25, y: -58.31668, z: 7.1428576}
+  m_TranslationOffset: {x: -18.249998, y: -58.31668, z: 7.1428566}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -79216,7 +79306,7 @@ PositionConstraint:
   m_Enabled: 1
   m_Weight: 0.7
   m_TranslationAtRest: {x: 32.97, y: -18.94, z: 0}
-  m_TranslationOffset: {x: 14.720001, y: -20.856678, z: 7.1428576}
+  m_TranslationOffset: {x: 14.720003, y: -20.856678, z: 7.1428566}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -87471,7 +87561,7 @@ PositionConstraint:
   m_Enabled: 1
   m_Weight: 0.7
   m_TranslationAtRest: {x: 32.97, y: -75.38, z: 0}
-  m_TranslationOffset: {x: 14.720001, y: -77.29668, z: 7.1428576}
+  m_TranslationOffset: {x: 14.720003, y: -77.29668, z: 7.1428566}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -94196,15 +94286,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.x
-      value: -18.25
+      value: -18.249998
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.y
-      value: -1.9166777
+      value: -1.9166775
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.z
-      value: 7.1428576
+      value: 7.1428566
       objectReference: {fileID: 0}
     - target: {fileID: 378397562522100397, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_Sources.Array.data[0].sourceTransform
@@ -94212,15 +94302,15 @@ PrefabInstance:
       objectReference: {fileID: 519420032}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.x
-      value: 14.720001
+      value: 14.720003
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.y
-      value: -1.9166777
+      value: -1.9166775
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_TranslationOffset.z
-      value: 7.1428576
+      value: 7.1428566
       objectReference: {fileID: 0}
     - target: {fileID: 378397563087847482, guid: a8098459d957e3041889378ba6bfd125, type: 3}
       propertyPath: m_Sources.Array.data[0].sourceTransform
@@ -94992,7 +95082,7 @@ PositionConstraint:
   m_Enabled: 1
   m_Weight: 0.7
   m_TranslationAtRest: {x: 0, y: -37.919994, z: 0}
-  m_TranslationOffset: {x: -18.25, y: -39.836674, z: 7.1428576}
+  m_TranslationOffset: {x: -18.249998, y: -39.83667, z: 7.1428566}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1
@@ -101636,7 +101726,7 @@ PositionConstraint:
   m_Enabled: 1
   m_Weight: 0.7
   m_TranslationAtRest: {x: 32.97, y: -56.399994, z: 0}
-  m_TranslationOffset: {x: 14.720001, y: -58.316673, z: 7.1428576}
+  m_TranslationOffset: {x: 14.720003, y: -58.316673, z: 7.1428566}
   m_AffectTranslationX: 1
   m_AffectTranslationY: 1
   m_AffectTranslationZ: 1

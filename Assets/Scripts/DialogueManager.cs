@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -55,7 +56,21 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(false);
         nextIndicator.SetActive(false);
         portraitImage.SetActive(false);   // 처음에 초상화 OFF
-        DialogueManager.Instance.StartDialogue(npc1Dialogue);
+
+        
+        string scene = SceneManager.GetActiveScene().name; // 현재 씬 이름 가져오기
+
+
+        if (scene == "Level 1-1")
+        {
+            DialogueManager.Instance.StartDialogue(npc1Dialogue); //Level 1-1 진입 시 1번 대화 출력
+        }
+
+        if (scene == "Level 1-3")
+        {
+            DialogueManager.Instance.StartDialogue(npc2Dialogue); //Level 1-3 진입 시 2번 대화 출력
+        }
+
     }
 
     void Update()

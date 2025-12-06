@@ -7,6 +7,13 @@ public class PauseNavigation : MonoBehaviour
     public Button[] pauseButtons; // 계속하기, 나가기
     private int index = 0;
 
+    void Awake()
+    {
+        if (EventSystem.current == null)
+            new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+    }
+
+
     private void OnEnable()
     {
         index = 0;
