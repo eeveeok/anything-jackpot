@@ -22,6 +22,8 @@ public class CannonEffect : MonoBehaviour
     private Dictionary<Tilemap, Dictionary<Vector3Int, int>> tileHealthMap = new Dictionary<Tilemap, Dictionary<Vector3Int, int>>();
     private Vector2 impactPoint; // 충돌 지점 저장
 
+    Dictionary<Vector3Int, int> tileHealth = new Dictionary<Vector3Int, int>();
+
     void Start()
     {
         if (origin == null)

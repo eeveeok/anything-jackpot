@@ -267,7 +267,7 @@ public class CannonShooter : MonoBehaviour
     private void Respawn()
     {
         Vector3 respawnPos = checkpoint != null ? checkpoint.position : lastGroundedPosition;
-        respawnPos.y += 0.5f;
+        respawnPos.y += 2.5f;
 
         transform.position = respawnPos;
         rb.velocity = Vector2.zero;

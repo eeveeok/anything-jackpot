@@ -386,7 +386,7 @@ public class LaserShooter : MonoBehaviour
         Vector3 respawnPos = checkpoint != null ? checkpoint.position : lastGroundedPosition;
 
         // 높이를 약간 보정 (땅 위에 서있도록)
-        respawnPos.y += 0.5f;
+        respawnPos.y += 2.5f;
 
         transform.position = respawnPos;
 

@@ -38,9 +38,14 @@ public class Stage3Boss : MonoBehaviour
     public float waveInterval = 0.3f;
     public float waveSpacing = 1.5f;
     public int rushTimes = 4;
-    public float rushSpeed = 12f;
-    public float rushDuration = 0.45f;  // 돌진 지속 시간
-    public float rushCooldown = 0.4f;   // 돌진 사이 대기 시간
+    public float rushSpeed = 25f;         // 증가된 돌진 속도
+    public float rushDuration = 1.2f;     // 증가된 돌진 지속 시간
+    public float rushCooldown = 0.4f;     // 돌진 사이 대기 시간
+    public float rushOvershootDistance = 8f; // 증가된 오버슈트 거리
+    public float descentSpeed = 20f;      // 하강 속도
+    public float descentHeight = 3f;      // 하강 높이
+    public float rushPathWidth = 2f;      // 돌진 경로 표시 너비
+    public float rushWarningTime = 0.8f;  // 돌진 준비 시간
 
     [Header("분노 패턴 설정")]
     public int rageSlamCount = 5;               // 분노 모드 손바닥 찍기 횟수 증가
@@ -49,10 +54,13 @@ public class Stage3Boss : MonoBehaviour
     public int rageWaveCount = 15;              // 더 많은 웨이브
     public float rageWaveInterval = 0.15f;      // 더 빠른 웨이브
     public float rageWaveSpacing = 2f;          // 더 넓은 간격
-    public float rageRushSpeed = 18f;           // 더 빠른 돌진
+    public float rageRushSpeed = 35f;           // 더 빠른 돌진
     public int rageRushTimes = 6;               // 더 많은 돌진 횟수
-    public float rageRushDuration = 0.35f;      // 더 짧은 돌진 지속 시간
+    public float rageRushDuration = 1.0f;       // 더 긴 돌진 지속 시간
     public float rageRushCooldown = 0.3f;       // 더 짧은 대기 시간
+    public float rageRushOvershootDistance = 12f; // 더 많이 넘어서 감
+    public float rageDescentSpeed = 25f;        // 더 빠른 하강 속도
+    public float rageRushWarningTime = 0.5f;    // 더 짧은 경고 시간
 
     [Header("시각 효과 설정")]
     public float slamEffectDuration = 1.5f;
@@ -61,9 +69,11 @@ public class Stage3Boss : MonoBehaviour
     public Color normalSlamColor = Color.red;
     public Color rageSlamColor = Color.magenta;
     public Material circleMaterial;             // 원형 이펙트에 사용할 머티리얼
+    public Color rushPathColor = new Color(1f, 0.2f, 0.2f, 0.4f); // 돌진 경로 색상
+    public Color rageRushPathColor = new Color(1f, 0f, 1f, 0.6f); // 분노 돌진 경로 색상
 
     [Header("충돌 데미지 설정")]
-    public float rushDamageRadius = 3f;         // 돌진 시 데미지 반경
+    public float rushDamageRadius = 4f;         // 증가된 돌진 데미지 반경
     public bool canDealRushDamage = true;       // 돌진 데미지 활성화
 
     [Header("카메라 설정")]
@@ -83,9 +93,13 @@ public class Stage3Boss : MonoBehaviour
     private Camera mainCamera;
     private Vector3 originalCameraPos;
     private Sprite circleSprite;                // 동적으로 생성할 원형 스프라이트
+    private Sprite lineSprite;                  // 돌진 경로 표시용 선형 스프라이트
     private bool isRushing = false;             // 돌진 중인지 확인
     private float lastRushTime = 0f;            // 마지막 돌진 시간
     private Vector2 rushDirection;              // 현재 돌진 방향
+    private bool isDescending = false;          // 하강 중인지 확인
+    private float originalGravityScale;         // 원래 중력 스케일 저장
+    private GameObject rushPathIndicator;       // 돌진 경로 표시 오브젝트
 
     // Stage1Boss에서 가져온 메모리 관리 시스템
     private List<GameObject> activeEffects = new List<GameObject>();
@@ -109,6 +123,9 @@ public class Stage3Boss : MonoBehaviour
             originalCameraPos = mainCamera.transform.position;
         }
 
+        // 원래 중력 스케일 저장
+        originalGravityScale = rb.gravityScale;
+
         // 보스 스프라이트 렌더러 참조
         bossSpriteRenderer = GetComponent<SpriteRenderer>();
         if (bossSpriteRenderer != null)
@@ -116,8 +133,9 @@ public class Stage3Boss : MonoBehaviour
             originalBossColor = bossSpriteRenderer.color;
         }
 
-        // 원형 스프라이트 생성
+        // 스프라이트 생성
         circleSprite = CreateCircleSprite();
+        lineSprite = CreateLineSprite();
 
         currentHP = maxHP;
 
@@ -128,7 +146,7 @@ public class Stage3Boss : MonoBehaviour
 
     void Update()
     {
-        if (!isInPattern)
+        if (!isInPattern && !isRushing && !isDescending)
         {
             FollowPlayer();
         }
@@ -144,7 +162,7 @@ public class Stage3Boss : MonoBehaviour
     }
 
     // ----------------------------------------------------------
-    //              동적으로 원형 스프라이트 생성
+    //              동적으로 스프라이트 생성
     // ----------------------------------------------------------
     Sprite CreateCircleSprite()
     {
@@ -168,6 +186,36 @@ public class Stage3Boss : MonoBehaviour
                     // 부드러운 가장자리를 위한 알파값
                     float alpha = Mathf.Clamp01(1 - (distance / radius));
                     alpha = Mathf.Pow(alpha, 0.5f); // 더 부드러운 가장자리
+                    texture.SetPixel(x, y, new Color(1, 1, 1, alpha));
+                }
+                else
+                {
+                    texture.SetPixel(x, y, Color.clear);
+                }
+            }
+        }
+
+        texture.Apply();
+
+        // 스프라이트 생성
+        return Sprite.Create(texture, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 128);
+    }
+
+    Sprite CreateLineSprite()
+    {
+        // 선형 스프라이트 생성 (돌진 경로 표시용)
+        Texture2D texture = GetTextureFromPool(128, 128);
+
+        // 수평선 그리기
+        for (int y = 0; y < 128; y++)
+        {
+            for (int x = 0; x < 128; x++)
+            {
+                // 선의 두께 (중앙에서 ±10픽셀)
+                if (Mathf.Abs(y - 64) <= 10)
+                {
+                    // 선형 그라데이션 (중앙에서 가장 진하고 가장자리로 갈수록 희미해짐)
+                    float alpha = Mathf.Clamp01(1 - Mathf.Abs(y - 64) / 10f);
                     texture.SetPixel(x, y, new Color(1, 1, 1, alpha));
                 }
                 else
@@ -450,29 +498,300 @@ public class Stage3Boss : MonoBehaviour
 
         for (int i = 0; i < rushTimes; i++)
         {
-            Vector2 dir = (player.position - transform.position).normalized;
-            rushDirection = dir; // 돌진 방향 저장
-            float timer = 0;
+            // 플레이어를 넘어서까지 가기 위해 목표 위치 계산
+            Vector2 playerPos = player.position;
+            Vector2 direction = (playerPos - (Vector2)transform.position).normalized;
 
-            // 돌진 시작
-            isRushing = true;
-            Debug.Log($"돌진 #{i + 1} 시작 - 방향: {dir}, 속도: {rushSpeed}");
+            // 플레이어를 넘어서 가는 추가 거리 포함
+            Vector2 targetPosition = playerPos + (direction * rushOvershootDistance);
 
-            while (timer < rushDuration)
+            // 돌진 경로 표시
+            yield return StartCoroutine(ShowRushPath(targetPosition, false));
+
+            // 돌진 실행
+            yield return StartCoroutine(ExecuteRush(targetPosition, false));
+
+            // 공중에 있다면 하강
+            if (IsInAir())
             {
-                timer += Time.deltaTime;
-                rb.velocity = dir * rushSpeed;
-                yield return null;
+                yield return StartCoroutine(DescendAfterRush(false));
             }
 
-            // 돌진 종료
-            isRushing = false;
-            rb.velocity = Vector2.zero;
             yield return new WaitForSeconds(rushCooldown);
         }
 
         isInPattern = false;
         Debug.Log("연속 돌진 패턴 종료");
+    }
+
+    // ----------------------------------------------------------
+    //              돌진 경로 표시
+    // ----------------------------------------------------------
+    IEnumerator ShowRushPath(Vector2 targetPosition, bool isRageMode)
+    {
+        float warningTime = isRageMode ? rageRushWarningTime : rushWarningTime;
+        Color pathColor = isRageMode ? rageRushPathColor : rushPathColor;
+
+        // 돌진 경로 오브젝트 생성
+        rushPathIndicator = new GameObject("RushPathIndicator");
+        rushPathIndicator.transform.position = transform.position;
+        RegisterEffect(rushPathIndicator);
+
+        SpriteRenderer pathRenderer = rushPathIndicator.AddComponent<SpriteRenderer>();
+        pathRenderer.sprite = lineSprite;
+        pathRenderer.color = pathColor;
+        pathRenderer.sortingOrder = -3;
+
+        // 경로 방향 계산
+        Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
+        float distance = Vector2.Distance(transform.position, targetPosition);
+
+        // 경로 설정
+        rushPathIndicator.transform.right = direction;
+        rushPathIndicator.transform.localScale = new Vector3(distance / 128f, rushPathWidth, 1f);
+
+        // 경로 위치를 시작점과 끝점 사이의 중간으로 설정
+        Vector2 midpoint = ((Vector2)transform.position + targetPosition) / 2f;
+        rushPathIndicator.transform.position = midpoint;
+
+        // 펄스 애니메이션
+        float elapsed = 0f;
+        float pulseSpeed = 5f;
+
+        while (elapsed < warningTime && rushPathIndicator != null)
+        {
+            elapsed += Time.deltaTime;
+
+            // 펄스 효과 (점멸)
+            float alpha = 0.4f + Mathf.Sin(elapsed * pulseSpeed) * 0.3f;
+            pathRenderer.color = new Color(pathColor.r, pathColor.g, pathColor.b, alpha);
+
+            // 살짝 확대/축소 효과
+            float pulseScale = 1f + Mathf.Sin(elapsed * pulseSpeed * 2f) * 0.1f;
+            rushPathIndicator.transform.localScale = new Vector3(
+                distance / 128f * pulseScale,
+                rushPathWidth * pulseScale,
+                1f
+            );
+
+            yield return null;
+        }
+
+        // 경로 표시 제거
+        if (rushPathIndicator != null)
+        {
+            UnregisterEffect(rushPathIndicator);
+            Destroy(rushPathIndicator);
+            rushPathIndicator = null;
+        }
+    }
+
+    // ----------------------------------------------------------
+    //              돌진 실행
+    // ----------------------------------------------------------
+    IEnumerator ExecuteRush(Vector2 targetPosition, bool isRageMode)
+    {
+        Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
+        rushDirection = direction; // 돌진 방향 저장
+        float timer = 0;
+
+        float currentRushSpeed = isRageMode ? rageRushSpeed : rushSpeed;
+        float currentRushDuration = isRageMode ? rageRushDuration : rushDuration;
+
+        // 돌진 시작
+        isRushing = true;
+        Debug.Log($"돌진 시작 - 목표: {targetPosition}, 방향: {direction}, 속도: {currentRushSpeed}, 지속시간: {currentRushDuration}");
+
+        // 돌진 중에 보스 주변에 이펙트 생성
+        GameObject rushTrailEffect = CreateRushTrailEffect(isRageMode);
+
+        while (timer < currentRushDuration)
+        {
+            timer += Time.deltaTime;
+
+            // 목표 위치를 향해 직선으로 이동
+            Vector2 currentDirection = (targetPosition - (Vector2)transform.position).normalized;
+            rb.velocity = currentDirection * currentRushSpeed;
+
+            // 돌진 이펙트 업데이트
+            if (rushTrailEffect != null)
+            {
+                rushTrailEffect.transform.position = transform.position;
+            }
+
+            yield return null;
+        }
+
+        // 돌진 종료
+        isRushing = false;
+        rb.velocity = Vector2.zero;
+
+        // 돌진 이펙트 정리
+        if (rushTrailEffect != null)
+        {
+            UnregisterEffect(rushTrailEffect);
+            Destroy(rushTrailEffect);
+        }
+
+        Debug.Log($"돌진 종료 - 현재 위치: {transform.position}");
+    }
+
+    GameObject CreateRushTrailEffect(bool isRageMode)
+    {
+        GameObject trail = new GameObject("RushTrail");
+        trail.transform.position = transform.position;
+        RegisterEffect(trail);
+
+        SpriteRenderer trailRenderer = trail.AddComponent<SpriteRenderer>();
+        trailRenderer.sprite = circleSprite;
+        trailRenderer.color = isRageMode ?
+            new Color(1f, 0f, 1f, 0.3f) :
+            new Color(1f, 0.2f, 0.2f, 0.3f);
+        trailRenderer.sortingOrder = -2;
+
+        Coroutine trailRoutine = StartCoroutine(RushTrailAnimation(trail, isRageMode));
+        activeCoroutines.Add(trailRoutine);
+
+        return trail;
+    }
+
+    IEnumerator RushTrailAnimation(GameObject trail, bool isRageMode)
+    {
+        float duration = 0.5f;
+        float elapsed = 0f;
+
+        while (elapsed < duration && trail != null)
+        {
+            elapsed += Time.deltaTime;
+
+            // 점점 커지면서 사라짐
+            float scale = 2f + elapsed * 4f;
+            trail.transform.localScale = new Vector3(scale, scale, 1f);
+
+            // 페이드 아웃
+            SpriteRenderer renderer = trail.GetComponent<SpriteRenderer>();
+            if (renderer != null)
+            {
+                float alpha = Mathf.Lerp(0.3f, 0f, elapsed / duration);
+                renderer.color = isRageMode ?
+                    new Color(1f, 0f, 1f, alpha) :
+                    new Color(1f, 0.2f, 0.2f, alpha);
+            }
+
+            yield return null;
+        }
+
+        if (trail != null)
+        {
+            UnregisterEffect(trail);
+            Destroy(trail);
+        }
+    }
+
+    // ----------------------------------------------------------
+    //              공중 체크
+    // ----------------------------------------------------------
+    bool IsInAir()
+    {
+        // 간단한 방법: 일정 높이 이상인지 체크
+        // 실제 게임에서는 레이캐스트로 지면과의 거리를 체크하는 것이 좋음
+        float groundLevel = -3f; // 기본 지면 높이 (게임에 맞게 조정 필요)
+        return transform.position.y > groundLevel + 0.5f;
+    }
+
+    // ----------------------------------------------------------
+    //              돌진 후 하강 코루틴
+    // ----------------------------------------------------------
+    IEnumerator DescendAfterRush(bool isRageMode)
+    {
+        isDescending = true;
+
+        // 하강 속도와 높이 설정
+        float currentDescentSpeed = isRageMode ? rageDescentSpeed : descentSpeed;
+        float groundLevel = -3f; // 게임의 지면 높이
+
+        Debug.Log($"하강 시작 - 현재 높이: {transform.position.y}, 목표 높이: {groundLevel}, 속도: {currentDescentSpeed}");
+
+        // 하강 애니메이션 (이펙트)
+        CreateDescentEffect(isRageMode);
+
+        // 하강
+        while (transform.position.y > groundLevel + 0.1f)
+        {
+            // 아래로 하강 (중력 적용)
+            Vector2 velocity = rb.velocity;
+            velocity.y = -currentDescentSpeed;
+            velocity.x *= 0.8f; // 수평 이동 감속
+            rb.velocity = velocity;
+            yield return null;
+        }
+
+        // 하강 종료
+        rb.velocity = Vector2.zero;
+
+        // 착지 이펙트
+        CreateLandingEffect(isRageMode);
+
+        yield return new WaitForSeconds(0.2f);
+        isDescending = false;
+
+        Debug.Log($"하강 완료 - 최종 위치: {transform.position}");
+    }
+
+    void CreateDescentEffect(bool isRageMode)
+    {
+        GameObject descentEffect = new GameObject("DescentEffect");
+        descentEffect.transform.position = transform.position;
+        RegisterEffect(descentEffect);
+
+        SpriteRenderer renderer = descentEffect.AddComponent<SpriteRenderer>();
+        renderer.sprite = circleSprite;
+        renderer.color = isRageMode ? new Color(1f, 0.2f, 0.8f, 0.4f) : new Color(1f, 0.5f, 0.2f, 0.4f);
+        renderer.sortingOrder = -2;
+
+        Coroutine effectRoutine = StartCoroutine(DescentEffectAnimation(descentEffect, isRageMode));
+        activeCoroutines.Add(effectRoutine);
+    }
+
+    IEnumerator DescentEffectAnimation(GameObject effect, bool isRageMode)
+    {
+        float duration = 0.8f;
+        float elapsed = 0f;
+
+        while (elapsed < duration && effect != null)
+        {
+            elapsed += Time.deltaTime;
+
+            // 보스를 따라다니며 점점 커지기
+            effect.transform.position = transform.position;
+            float scale = 3f + elapsed * 3f;
+            effect.transform.localScale = new Vector3(scale, scale * 0.5f, 1f);
+
+            // 페이드 아웃
+            SpriteRenderer renderer = effect.GetComponent<SpriteRenderer>();
+            float alpha = Mathf.Lerp(0.4f, 0f, elapsed / duration);
+            Color color = isRageMode ? new Color(1f, 0.2f, 0.8f, alpha) : new Color(1f, 0.5f, 0.2f, alpha);
+            renderer.color = color;
+
+            yield return null;
+        }
+
+        if (effect != null)
+        {
+            UnregisterEffect(effect);
+            Destroy(effect);
+        }
+    }
+
+    void CreateLandingEffect(bool isRageMode)
+    {
+        // 착지 충격파 이펙트
+        CreateShockwave(transform.position, isRageMode);
+
+        // 카메라 흔들기
+        float shakeIntensity = isRageMode ? cameraShakeIntensity * 0.7f : cameraShakeIntensity * 0.5f;
+        Coroutine shakeRoutine = StartCoroutine(ShakeCinemachineCamera(shakeIntensity, 0.5f));
+        activeCoroutines.Add(shakeRoutine);
     }
 
     // ----------------------------------------------------------
@@ -559,30 +878,25 @@ public class Stage3Boss : MonoBehaviour
 
         for (int i = 0; i < rageRushTimes; i++)
         {
-            Vector2 dir = (player.position - transform.position).normalized;
-            rushDirection = dir; // 돌진 방향 저장
-            float timer = 0;
+            // 플레이어를 더 많이 넘어서 가기 위해 목표 위치 계산
+            Vector2 playerPos = player.position;
+            Vector2 direction = (playerPos - (Vector2)transform.position).normalized;
 
-            // 분노 돌진 이펙트 생성
-            if (i % 2 == 0) // 짝수 번째 돌진마다 이펙트
+            // 플레이어를 더 많이 넘어서 가는 추가 거리 포함
+            Vector2 targetPosition = playerPos + (direction * rageRushOvershootDistance);
+
+            // 돌진 경로 표시 (더 짧은 경고 시간)
+            yield return StartCoroutine(ShowRushPath(targetPosition, true));
+
+            // 돌진 실행
+            yield return StartCoroutine(ExecuteRush(targetPosition, true));
+
+            // 공중에 있다면 하강
+            if (IsInAir())
             {
-                CreateShockwave(transform.position, true);
+                yield return StartCoroutine(DescendAfterRush(true));
             }
 
-            // 돌진 시작
-            isRushing = true;
-            Debug.Log($"분노 돌진 #{i + 1} 시작 - 방향: {dir}, 속도: {rageRushSpeed}");
-
-            while (timer < rageRushDuration)
-            {
-                timer += Time.deltaTime;
-                rb.velocity = dir * rageRushSpeed;
-                yield return null;
-            }
-
-            // 돌진 종료
-            isRushing = false;
-            rb.velocity = Vector2.zero;
             yield return new WaitForSeconds(rageRushCooldown);
         }
 
@@ -938,6 +1252,7 @@ public class Stage3Boss : MonoBehaviour
 
         portal.SetActive(true);
     }
+
     void CreateDeathEffect()
     {
         if (deathExplosionPrefab == null)
