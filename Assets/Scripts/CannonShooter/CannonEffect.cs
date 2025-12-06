@@ -24,6 +24,8 @@ public class CannonEffect : MonoBehaviour
 
     Dictionary<Vector3Int, int> tileHealth = new Dictionary<Vector3Int, int>();
 
+    Dictionary<Vector3Int, int> tileHealth = new Dictionary<Vector3Int, int>();
+
     void Start()
     {
         if (origin == null)
@@ -64,7 +66,6 @@ public class CannonEffect : MonoBehaviour
             damageLayers
         );
 
-        // 레이캐스트 디버그 시각화
         if (debugVisualization)
         {
             Debug.DrawRay(origin.position, direction * raycastDistance, Color.yellow, 1f);
