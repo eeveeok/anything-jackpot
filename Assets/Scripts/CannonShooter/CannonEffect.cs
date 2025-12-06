@@ -11,14 +11,15 @@ public class CannonEffect : MonoBehaviour
     public LayerMask damageLayers;
     public Transform origin;
 
-    [Header("시각 효과")]
-    public LineRenderer lineRenderer;
-    public ParticleSystem impactParticles;
-    public AnimationCurve widthCurve;
-    public Gradient colorGradient;
+    [Header("타일 파괴 설정")]
+    public float tileBreakRadius = 2.5f; // 타일 파괴 반경
+    public float raycastDistance = 5f;   // 레이캐스트 거리
+    public bool debugVisualization = true; // 디버그 시각화
 
     private float timer = 0f;
     private bool hasDamaged = false;
+    private Dictionary<Tilemap, Dictionary<Vector3Int, int>> tileHealthMap = new Dictionary<Tilemap, Dictionary<Vector3Int, int>>();
+    private Vector2 impactPoint; // 충돌 지점 저장
 
     void Start()
     {
@@ -119,9 +120,37 @@ public class CannonEffect : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawRay(transform.position, direction * range);
 
-            // 원뿔 형태 시각화
-            Gizmos.color = new Color(1f, 0.5f, 0f, 0.3f);
-            DrawConeGizmo(transform.position, direction, range, 30f);
+        if (hit.collider != null)
+        {
+            impactPoint = hit.point;
+            Debug.Log($"CannonEffect hit: {hit.collider.name} at {impactPoint}");
+
+            // 2. 충돌한 객체가 Breakable 태그를 가지고 있는지 확인
+            if (hit.collider.CompareTag("Breakable"))
+            {
+                // 3. 타일맵인지 확인
+                Tilemap tilemap = hit.collider.GetComponent<Tilemap>();
+                if (tilemap != null)
+                {
+                    // 4. 충돌점의 타일 위치 계산
+                    Vector3 hitPosition = hit.point - (Vector2)hit.normal * 0.01f; // 약간 안쪽으로
+                    Vector3Int cellPosition = tilemap.WorldToCell(hitPosition);
+
+                    // 5. 타일 파괴
+                    BreakTilesInRadius(tilemap, cellPosition);
+                }
+                else
+                {
+                    // 타일맵이 아닌 일반 Breakable 오브젝트 파괴
+                    Debug.Log($"Destroying breakable object: {hit.collider.name}");
+                    Destroy(hit.collider.gameObject);
+                }
+            }
+        }
+        else
+        {
+            // 충돌이 없으면 최대 거리 지점을 impactPoint로 설정
+            impactPoint = (Vector2)origin.position + direction * raycastDistance;
         }
     }
 
